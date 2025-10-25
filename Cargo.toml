@@ -7,16 +7,15 @@ edition = "2024"
 name = "insc_jvm"
 path = "src/main.rs"
 
-[[bin]]
-name = "insc_llvm"
-path = "src/main.rs"
-
-
-[dependencies]
-clap = { version = "4.4", features = ["derive"] }
-larlpop-util = { version = "4.4", features = ["derive"] }
-# inkwell = { version = "0.2.0", features = ["llvm16-0"] }
-# regex = "1.10"
+# [[bin]]
+# name = "insc_llvm"
+# path = "src/main.rs"
 
 [build-dependencies]
-larlpop = "0.20"
+lalrpop = "0.22.2"
+
+[dependencies]
+clap = { version = "4.5.41", features = ["derive"] }
+lalrpop-util = { version = "0.22.2", features = ["lexer", "unicode"] }
+# inkwell = { version = "0.2.0", features = ["llvm16-0"] }
+# regex = "1.10"
