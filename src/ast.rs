@@ -32,6 +32,7 @@ pub enum BinOp {
 
 impl Program {
     pub fn calculate_weights(&mut self) {
+        println!("Calculate weights");
         for stmt in &mut self.0 {
             stmt.calculate_weights();
         }
@@ -57,10 +58,7 @@ impl Expr {
             Expr::Literal(_) => 1,
             Expr::Identifier(_) => 1,
             Expr::BinaryOp {
-                lhs,
-                rhs,
-                weight,
-                ..
+                lhs, rhs, weight, ..
             } => {
                 let lhs_weight = lhs.calculate_weights();
                 let rhs_weight = rhs.calculate_weights();
@@ -75,6 +73,13 @@ impl Expr {
 
                 current_weight
             }
+        }
+    }
+
+    pub fn get_weight(&self) -> Option<u64> {
+        match self {
+            Expr::BinaryOp { weight, .. } => *weight,
+            _ => Some(1),
         }
     }
 }

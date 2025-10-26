@@ -10,11 +10,11 @@ fn main() {
     let parser = ProgramParser::new();
 
     match parser.parse(lexer) {
-        Ok(program) => {
+        Ok(mut program) => {
             println!("Parsing success!");
             println!("Generating JVM code...");
             let mut generator = JasmineGenerator::new();
-            match generator.lower_program(&program) {
+            match generator.lower_program(&mut program) {
                 Ok(code) => {
                     let output_path = "output/Main.jasmine";
                     fs::write(output_path, code).expect("File write fail");

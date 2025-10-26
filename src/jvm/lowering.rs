@@ -26,7 +26,8 @@ impl JasmineGenerator {
     }
 
     // Performs the lowering for the whole program.
-    pub fn lower_program(&mut self, program: &Program) -> Result<String, LoweringError> {
+    pub fn lower_program(&mut self, program: &mut Program) -> Result<String, LoweringError> {
+        program.calculate_weights();
         self.emit_preambule();
         for stmt in &program.0 {
             self.lower_statement(stmt)?;
@@ -64,9 +65,25 @@ impl JasmineGenerator {
                     return Err(LoweringError::UndefinedVariable(name.clone()));
                 }
             }
-            Expr::BinaryOp { op, lhs, rhs , weight} => {
-                self.lower_expression(lhs)?;
-                self.lower_expression(rhs)?;
+            Expr::BinaryOp { op, lhs, rhs, .. } => {
+                let is_commutative = matches!(op, BinOp::Add | BinOp::Mul);
+
+                // Left subtree is bigger, then we swap the order of calculations.
+                if rhs.get_weight().expect("Weight not calculated for rhs")
+                    > lhs.get_weight().expect("Weight not calculated for lhs")
+                {
+                    self.lower_expression(lhs)?;
+                    self.lower_expression(rhs)?;
+                } else {
+                    self.lower_expression(rhs)?;
+                    self.lower_expression(lhs)?;
+
+                    // For non commutative ops we swap the order on the stack.
+                    if !is_commutative {
+                        self.emit_instruction("swap");
+                    }
+                }
+
                 let instr = match op {
                     BinOp::Add => "iadd",
                     BinOp::Sub => "isub",
@@ -92,6 +109,7 @@ impl JasmineGenerator {
     }
 
     fn emit_instruction(&mut self, instruction: &str) {
+        // TODO: Modify this to use iconst, iload, etc.
         self.output.push_str("    ");
         self.output.push_str(instruction);
         self.output.push('\n');
