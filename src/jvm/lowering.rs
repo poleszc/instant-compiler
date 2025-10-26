@@ -64,7 +64,7 @@ impl JasmineGenerator {
                     return Err(LoweringError::UndefinedVariable(name.clone()));
                 }
             }
-            Expr::BinaryOp { op, lhs, rhs } => {
+            Expr::BinaryOp { op, lhs, rhs , weight} => {
                 self.lower_expression(lhs)?;
                 self.lower_expression(rhs)?;
                 let instr = match op {

@@ -56,6 +56,7 @@ pub Expression: Box<ast::Expr> = {
             op: ast::BinOp::Mul,
             lhs,
             rhs,
+            weight: None,
         })
     },
     <lhs:Expression> "/" <rhs:Expression> => {
@@ -63,6 +64,7 @@ pub Expression: Box<ast::Expr> = {
             op: ast::BinOp::Div,
             lhs,
             rhs,
+            weight: None,
         })
     },
 
@@ -73,6 +75,7 @@ pub Expression: Box<ast::Expr> = {
             op: ast::BinOp::Add,
             lhs,
             rhs,
+            weight: None,
         })
     },
     <lhs:Expression> "-" <rhs:Expression> => {
@@ -80,6 +83,7 @@ pub Expression: Box<ast::Expr> = {
             op: ast::BinOp::Sub,
             lhs,
             rhs,
+            weight: None,
         })
     },
 }
