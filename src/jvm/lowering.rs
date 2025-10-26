@@ -45,6 +45,7 @@ impl JasmineGenerator {
             }
             Stmt::Expression { value } => {
                 self.lower_expression(value)?;
+                self.emit_print();
             }
         }
         Ok(())
@@ -110,6 +111,12 @@ impl JasmineGenerator {
         self.emit(" .limit stack 100");
         self.emit(" .limit locals 100");
         self.emit("");
+    }
+
+    fn emit_print(&mut self) {
+        self.emit_instruction("getstatic java/lang/System/out Ljava/io/PrintStream;");
+        self.emit_instruction("swap");
+        self.emit_instruction("invokevirtual java/io/PrintStream/println(I)V");
     }
 
     fn emit_postambule(&mut self) {

@@ -4,7 +4,7 @@ use instant_compiler::{JasmineGenerator, MyLexer, ProgramParser, report_error};
 
 fn main() {
     println!("Hello, Instant!");
-    let file_path = "tests/in/test04.ins";
+    let file_path = "tests/in/test06.ins";
     let source_code = std::fs::read_to_string(file_path).expect("Failed to read a file");
     let lexer = MyLexer::new(&source_code);
     let parser = ProgramParser::new();
