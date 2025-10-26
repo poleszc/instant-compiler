@@ -1,0 +1,94 @@
+use crate::tokens::{Token, LexicalError};
+use crate::ast;
+
+grammar;
+
+extern {
+    type Location = usize;
+    type Error = LexicalError;
+      
+    enum Token {
+        "identifier" => Token::Identifier(<String>),
+        "int" => Token::Integer(<i64>),
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+        "=" => Token::Assign,
+        ";" => Token::Semicolon,
+        "+" => Token::OperatorAdd,
+        "-" => Token::OperatorSub,
+        "*" => Token::OperatorMul,
+        "/" => Token::OperatorDiv,
+    }
+
+}
+
+pub Program: ast::Program = {
+    <stmts: Comma<Statement>> => ast::Program(stmts)
+}
+
+// TODO: Should optional trailing semicolon be accepted?
+Comma<T>: Vec<T> = {
+    <mut v:(<T> ";")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+}
+
+pub Statement: ast::Stmt = {
+    <name:"identifier"> "=" <value:Expression> => {
+        ast::Stmt::Assignment { name, value }
+    },
+    <expr:Expression> => {
+        ast::Stmt::Expression { value: expr }
+    },
+}
+
+pub Expression: Box<ast::Expr> = {
+    #[precedence(level="1")]
+    Term,
+
+    #[precedence(level="2")] #[assoc(side="left")]
+    <lhs:Expression> "*" <rhs:Expression> => {
+        Box::new(ast::Expr::BinaryOp {
+            op: ast::BinOp::Mul,
+            lhs,
+            rhs,
+        })
+    },
+    <lhs:Expression> "/" <rhs:Expression> => {
+        Box::new(ast::Expr::BinaryOp {
+            op: ast::BinOp::Div,
+            lhs,
+            rhs,
+        })
+    },
+
+    #[precedence(level="3")] #[assoc(side="left")]
+    <lhs:Expression> "+" <rhs:Expression> => {
+        Box::new(ast::Expr::BinaryOp {
+            op: ast::BinOp::Add,
+            lhs,
+            rhs,
+        })
+    },
+    <lhs:Expression> "-" <rhs:Expression> => {
+        Box::new(ast::Expr::BinaryOp {
+            op: ast::BinOp::Sub,
+            lhs,
+            rhs,
+        })
+    },
+}
+
+pub Term: Box<ast::Expr> = {
+    <val:"int"> => {
+        Box::new(ast::Expr::Literal(val))
+    },
+    <name:"identifier"> => {
+        Box::new(ast::Expr::Identifier(name))
+    },
+    "(" <Expression> ")",
+}

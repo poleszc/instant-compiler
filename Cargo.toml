@@ -17,5 +17,7 @@ lalrpop = "0.22.2"
 [dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
 lalrpop-util = { version = "0.22.2", features = ["lexer", "unicode"] }
+ariadne = {version = "0.4.0", features = ["auto-color"]}
 # inkwell = { version = "0.2.0", features = ["llvm16-0"] }
-# regex = "1.10"
+# regex = "1.10.3"
+logos = "0.14"
