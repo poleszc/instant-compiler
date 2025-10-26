@@ -26,7 +26,7 @@ pub Program: ast::Program = {
     <stmts: Comma<Statement>> => ast::Program(stmts)
 }
 
-// TODO: Should optional trailing semicolon be accepted?
+// TODO: Should optional trailing semicolon be accepted? For now it is.
 Comma<T>: Vec<T> = {
     <mut v:(<T> ";")*> <e:T?> => match e {
         None => v,

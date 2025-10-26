@@ -1,19 +1,10 @@
-use lalrpop_util::lalrpop_mod;
-use lexer::Lexer;
-
-lalrpop_mod!(pub instant);
-
-pub mod ast;
-pub mod lexer;
-pub mod tokens;
-
-use crate::instant::ProgramParser;
+use instant_compiler::{ProgramParser, MyLexer};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, Instant!");
 
-    let source_code = std::fs::read_to_string("tests/in/test07.ins")?;
-    let lexer = Lexer::new(&source_code);
+    let source_code = std::fs::read_to_string("tests/in/test06.ins")?;
+    let lexer = MyLexer::new(&source_code);
     let parser = ProgramParser::new();
     let ast = parser.parse(lexer)?;
 

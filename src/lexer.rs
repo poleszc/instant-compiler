@@ -3,11 +3,11 @@ use logos::{Logos, SpannedIter};
 
 pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 
-pub struct Lexer<'input> {
+pub struct MyLexer<'input> {
     token_stream: SpannedIter<'input, Token>,
 }
 
-impl<'input> Lexer<'input> {
+impl<'input> MyLexer<'input> {
     pub fn new(input: &'input str) -> Self {
         Self {
             token_stream: Token::lexer(input).spanned(),
@@ -15,7 +15,7 @@ impl<'input> Lexer<'input> {
     }
 }
 
-impl<'input> Iterator for Lexer<'input> {
+impl<'input> Iterator for MyLexer<'input> {
     type Item = Spanned<Token, usize, LexicalError>;
     fn next(&mut self) -> Option<Self::Item> {
         self.token_stream

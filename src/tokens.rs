@@ -1,5 +1,5 @@
 use logos::Logos;
-use std::{default, fmt, num::ParseIntError};
+use std::{fmt, num::ParseIntError};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum LexicalError {
