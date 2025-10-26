@@ -6,6 +6,8 @@ pub mod ast;
 pub mod error;
 pub mod lexer;
 pub mod tokens;
+pub mod diagnostics;
 
 pub use crate::instant::ProgramParser;
 pub use crate::lexer::MyLexer;
+pub use crate::diagnostics::report_error;

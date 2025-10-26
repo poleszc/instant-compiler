@@ -1,0 +1,66 @@
+use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
+use crate::tokens::{LexicalError, Token};
+use lalrpop_util::ParseError;
+
+pub fn report_error(file_path: &str, source: &str, err: ParseError<usize, Token, LexicalError>) {
+    let source_cache = Source::from(source);
+    let config = Config::default().with_color(true).with_underlines(true);
+    let report = Report::build(ReportKind::Error, file_path, 0).with_config(config);
+    let mut colors = ColorGenerator::new();
+
+    let (report, _) = match err {
+        ParseError::InvalidToken { location } => (
+            report.with_message("Invalid token").with_label(
+                Label::new((file_path, location..location))
+                    .with_message("This token is invalid in this context")
+                    .with_color(colors.next()),
+            ),
+            location..location,
+        ),
+        ParseError::UnrecognizedEof { location, expected } => (
+            report.with_message("Unrecognized end of file").with_label(
+                Label::new((file_path, location..location))
+                    .with_message(format!("Expected one of: {}", expected.join(", ")))
+                    .with_color(colors.next()),
+            ),
+            location..location,
+        ),
+        ParseError::UnrecognizedToken { token, expected } => {
+            let (start, tok, end) = token;
+            (
+                report
+                    .with_message(format!("Unrecognized token '{}'", tok))
+                    .with_label(
+                        Label::new((file_path, start..end))
+                            .with_message(format!("Expected one of: {}", expected.join(", ")))
+                            .with_color(colors.next()),
+                    ),
+                start..end,
+            )
+        }
+        ParseError::ExtraToken { token } => {
+            let (start, tok, end) = token;
+            (
+                report
+                    .with_message(format!("Unexpected token '{}'", tok))
+                    .with_label(
+                        Label::new((file_path, start..end))
+                            .with_message("This token should not appear here")
+                            .with_color(colors.next()),
+                    ),
+                start..end,
+            )
+        }
+        ParseError::User { error } => (
+            report
+                .with_message("Lexer error")
+                .with_note(format!("Additional information: {}", error)),
+            0..0,
+        ),
+    };
+
+    report
+        .finish()
+        .print((file_path, source_cache))
+        .expect("Failed to report an error");
+}

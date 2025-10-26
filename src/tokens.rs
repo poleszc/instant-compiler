@@ -54,14 +54,14 @@ impl fmt::Display for Token {
         match self {
             Token::Identifier(s) => write!(fmt, "identifier '{}'", s),
             Token::Integer(i) => write!(fmt, "integer '{}'", i),
-            Token::Assign => write!(fmt, "'='"),
-            Token::Semicolon => write!(fmt, "';'"),
-            Token::LParen => write!(fmt, "'('"),
-            Token::RParen => write!(fmt, "')'"),
-            Token::OperatorAdd => write!(fmt, "'+'"),
-            Token::OperatorSub => write!(fmt, "'-'"),
-            Token::OperatorMul => write!(fmt, "'*'"),
-            Token::OperatorDiv => write!(fmt, "'/'"),
+            Token::Assign => write!(fmt, "="),
+            Token::Semicolon => write!(fmt, ";"),
+            Token::LParen => write!(fmt, "("),
+            Token::RParen => write!(fmt, ")"),
+            Token::OperatorAdd => write!(fmt, "+"),
+            Token::OperatorSub => write!(fmt, "-"),
+            Token::OperatorMul => write!(fmt, "*"),
+            Token::OperatorDiv => write!(fmt, "/"),
         }
     }
 }

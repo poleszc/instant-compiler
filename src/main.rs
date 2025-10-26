@@ -1,13 +1,19 @@
-use instant_compiler::{ProgramParser, MyLexer};
+use instant_compiler::{MyLexer, ProgramParser, report_error};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     println!("Hello, Instant!");
-
-    let source_code = std::fs::read_to_string("tests/in/test06.ins")?;
+    let file_path = "tests/in/bad_04.ins";
+    let source_code = std::fs::read_to_string(file_path).expect("Failed to read a file");
     let lexer = MyLexer::new(&source_code);
     let parser = ProgramParser::new();
-    let ast = parser.parse(lexer)?;
 
-    println!("{:?}", ast);
-    Ok(())
+    match parser.parse(lexer) {
+        Ok(ast) => {
+            println!("Parsing success!");
+            println!("{:?}", ast);
+        }
+        Err(err) => {
+            report_error(file_path, &source_code, err);
+        }
+    }
 }
