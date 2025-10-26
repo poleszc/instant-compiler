@@ -1,4 +1,4 @@
-use std::fmt::{Debug};
+use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
 pub struct Program(pub Vec<Stmt>);

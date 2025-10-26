@@ -1,5 +1,5 @@
-use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
 use crate::tokens::{LexicalError, Token};
+use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
 use lalrpop_util::ParseError;
 
 pub fn report_error(file_path: &str, source: &str, err: ParseError<usize, Token, LexicalError>) {

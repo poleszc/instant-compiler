@@ -1,4 +1,4 @@
-use instant_compiler::{ProgramParser, MyLexer};
+use instant_compiler::{MyLexer, ProgramParser};
 
 fn assert_parsing_succeeds(path: &str) {
     let source_code = std::fs::read_to_string(path)

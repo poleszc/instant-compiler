@@ -1,4 +1,8 @@
-use std::{env, fs, io::{self, Write}, path::Path};
+use std::{
+    env, fs,
+    io::{self, Write},
+    path::Path,
+};
 
 fn main() {
     lalrpop::process_root().unwrap();
@@ -29,8 +33,7 @@ fn generate_parsing_tests() -> io::Result<()> {
                     test_name,
                     path.display(),
                 )?;
-            }
-            else {
+            } else {
                 writeln!(
                     &mut file,
                     "#[test]\nfn test_pass_{}() {{\n    assert_parsing_succeeds(r\"{}\");\n}}\n",
