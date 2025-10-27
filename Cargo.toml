@@ -6,10 +6,12 @@ edition = "2024"
 [[bin]]
 name = "insc_jvm"
 path = "src/main.rs"
+required-features = ["jvm_backend"]
 
-# [[bin]]
-# name = "insc_llvm"
-# path = "src/main.rs"
+[[bin]]
+name = "insc_llvm"
+path = "src/main.rs"
+required-features = ["llvm_backend"]
 
 [build-dependencies]
 lalrpop = "0.22.2"
@@ -21,3 +23,7 @@ ariadne = {version = "0.4.0", features = ["auto-color"]}
 # inkwell = { version = "0.2.0", features = ["llvm16-0"] }
 # regex = "1.10.3"
 logos = "0.14"
+
+[features]
+jvm_backend = []
+llvm_backend = []

@@ -19,11 +19,13 @@ build-llvm:
 test: build
 	@echo "Running tests..."
 
+clean-all: clean
+	cargo clean
+
 clean:
 	echo "Cleaning up..."
-	cargo clean
 	rm -rf insc_jvm insc_llvm
-	rm -rf tests/good/*.j tests/good/*.class tests/good/*.ll tests/good/*.bc
+	rm -rf tests/in/*.j tests/in/*.class tests/in/*.ll tests/in/*.bc
 
 .PHONY:
-	all build build-jvm build-llvm test clean
+	all build build-jvm build-llvm test clean clean-all

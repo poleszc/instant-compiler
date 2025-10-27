@@ -1,12 +1,6 @@
 use crate::ast::{BinOp, Expr, Program, Stmt};
 use std::collections::HashMap;
 
-#[derive(Debug)]
-pub enum LoweringError {
-    UndefinedVariable(String),
-    ZeroDivision,
-}
-
 pub type RegisterName = String;
 pub type PointerName = String;
 pub type Constant = String;

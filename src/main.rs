@@ -1,47 +1,88 @@
-use std::fs;
-
-use instant_compiler::{
-    JasmineGenerator, MyLexer, ProgramParser, llvm::LLVMGenerator, report_error,
+use clap::Args;
+use clap::Parser;
+use logos::source;
+use std::{
+    fs,
+    path::{Path, PathBuf},
 };
 
-fn main() {
-    println!("Hello, Instant!");
-    let file_path = "tests/in/test06.ins";
-    let source_code = std::fs::read_to_string(file_path).expect("Failed to read a file");
-    let lexer = MyLexer::new(&source_code);
-    let parser = ProgramParser::new();
+use instant_compiler::{InstantArgs, MyLexer, ProgramParser, report_error};
 
-    match parser.parse(lexer) {
-        Ok(mut program) => {
-            println!("Parsing success!");
-            println!("Generating JVM code...");
-            let mut generator = JasmineGenerator::new();
-            match generator.lower_program(&mut program) {
-                Ok(code) => {
-                    let output_path = "output/Main.j";
-                    fs::write(output_path, code).expect("File write fail");
-                    println!("Generated Jasmine code!");
-                }
-                Err(err) => {
-                    println!("Error when generating code: {:?}", err);
-                }
-            }
+#[cfg(feature = "jvm_backend")]
+use instant_compiler::jvm::compile_jasmine;
 
-            println!("Generating LLVM code...");
-            let mut generator = LLVMGenerator::new();
-            match generator.lower_program(&mut program) {
-                Ok(code) => {
-                    let output_path = "output/Main.ll";
-                    fs::write(output_path, code).expect("File write fail");
-                    println!("Generated LLVM code!");
-                }
-                Err(err) => {
-                    println!("Error when generating code: {:?}", err);
-                }
-            }
-        }
-        Err(err) => {
-            report_error(file_path, &source_code, err);
-        }
+// #[cfg(feature = "llvm_backend")]
+// use instant_compiler::LLVMGenerator;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = InstantArgs::parse();
+
+    let output_dir = match args.output_dir {
+        Some(ref path) => path.clone(),
+        None => args
+            .input_file
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf(),
+    };
+
+    if let Err(err) = fs::create_dir_all(&output_dir) {
+        return Err(format!(
+            "Error when creating a directory '{}': {}",
+            output_dir.display(),
+            err
+        )
+        .into());
     }
+
+    let input_file = args.input_file.clone();
+    let source_code = match fs::read_to_string(&input_file) {
+        Ok(code) => code,
+        Err(err) => {
+            return Err(format!(
+                "Error when reading file '{}': {}",
+                input_file.display(),
+                err
+            )
+            .into());
+        }
+    };
+
+    let lexer = MyLexer::new(&source_code);
+
+    let mut program = match ProgramParser::new().parse(lexer) {
+        Ok(program) => program,
+        Err(err) => {
+            report_error(
+                input_file
+                    .to_str()
+                    .expect("Failed to convert input path to string"),
+                &source_code,
+                err,
+            );
+            return Err("Parsing failed".into());
+        }
+    };
+
+    let file_stem = args
+        .output
+        .as_deref()
+        .or_else(|| args.input_file.file_stem().and_then(|s| s.to_str()))
+        .expect(
+            format!(
+                "Could not determine output file name from: {}",
+                input_file.display()
+            )
+            .as_str(),
+        );
+
+    #[cfg(feature = "jvm_backend")]
+    compile_jasmine(&mut program, &output_dir, file_stem, &args).expect("Lowering failed");
+    // #[cfg(feature = "llvm_backend")]
+    // {
+    //     println!("Generating LLVM...");
+    //     compile_llvm().map_err(|err| report_error(file_path, &source_code, err));
+    // }
+    //
+    Ok(())
 }

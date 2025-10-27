@@ -32,7 +32,6 @@ pub enum BinOp {
 
 impl Program {
     pub fn calculate_weights(&mut self) {
-        println!("Calculate weights");
         for stmt in &mut self.0 {
             stmt.calculate_weights();
         }

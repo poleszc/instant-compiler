@@ -1,5 +1,5 @@
 use crate::ast::{BinOp, Expr, Program, Stmt};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::format};
 
 #[derive(Debug)]
 pub enum LoweringError {
@@ -9,6 +9,7 @@ pub enum LoweringError {
 
 #[derive(Debug, Default)]
 pub struct JasmineGenerator {
+    class_name: String,
     output: String,
     // Mapping of local variables to their index on the JVM stack.
     variables: HashMap<String, u32>,
@@ -17,8 +18,9 @@ pub struct JasmineGenerator {
 }
 
 impl JasmineGenerator {
-    pub fn new() -> Self {
+    pub fn new(class_name: &str) -> Self {
         Self {
+            class_name: class_name.to_string(),
             output: String::new(),
             variables: HashMap::new(),
             stack_index: 1,
@@ -121,7 +123,7 @@ impl JasmineGenerator {
     }
 
     fn emit_preambule(&mut self) {
-        self.emit(".class public Main");
+        self.emit(format!(".class public {}", self.class_name).as_str());
         self.emit(".super java/lang/Object");
         self.emit("");
         self.emit(".method public static main([Ljava/lang/String;)V");

@@ -44,7 +44,7 @@ Jedynym dozwolonym, a nawet pożądanym usprawnieniem jest wybór takiej kolejno
 2. W korzeniu projektu (tj. w katalogu, w którym zostało rozpakowane archiwum) muszą się znajdować co najmniej:
     * Plik tekstowy README opisujący szczegóły kompilacji i uruchamiania programu, używane narzędzia i biblioteki, strukturę katalogów projektu, ewentualnie odnośniki do bardziej szczegółowej dokumentacji.
     * Plik Makefile (lub skrypt `build`) pozwalający na zbudowanie programu.
-    * katalog src zawierający wyłącznie pliki źródłowe projektu (plus ewentualnie dostarczony przez nas plik Instant.cf); pliki pomocnicze takie jak biblioteki itp powinny być umieszczone w inych katalogach.
+    * katalog src zawierający wyłącznie pliki źródłowe projektu (plus ewentualnie dostarczony przez nas plik Instant.cf); pliki pomocnicze takie jak biblioteki itp powinny być umieszczone w innych katalogach.
 3. Program musi się kompilować na students poleceniem `make` (ewentualnie `./build`), uruchamianym w katalogu, w którym rozpakowano archiwum (czyli np. `tar xf foo.tgz; make`).
 4. Wszelkie używane biblioteki (poza biblioteką standardową używanego jezyka programowania) muszą być opisane w README
 5. Po zbudowaniu kompilatora, w korzeniu muszą się znajdować pliki
