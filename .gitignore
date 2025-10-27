@@ -5,6 +5,9 @@ target
 **/*.rs.bk
 *.pdb
 **/mutants.out*/
+tests/in/*.bc
+tests/in/*.ll
+
 
 # Added by cargo
 

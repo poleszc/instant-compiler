@@ -6,6 +6,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
+#[cfg(feature = "jvm_backend")]
 pub fn compile_jasmine(
     program: &mut Program,
     dir: &Path,

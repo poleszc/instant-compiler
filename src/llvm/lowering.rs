@@ -6,6 +6,12 @@ pub type PointerName = String;
 pub type Constant = String;
 
 #[derive(Debug)]
+pub enum LoweringError {
+    UndefinedVariable(String),
+    ZeroDivision,
+}
+
+#[derive(Debug)]
 pub enum LLVMInstruction {
     Add {
         location: RegisterName,
@@ -67,7 +73,7 @@ impl LLVMInstruction {
                 location,
                 left,
                 right,
-            } => format!("{} = div i32 {}, {}", location, left, right),
+            } => format!("{} = sdiv i32 {}, {}", location, left, right),
             LLVMInstruction::Load {
                 destination,
                 source,
@@ -100,7 +106,7 @@ impl LLVMGenerator {
         Self {
             output: String::new(),
             variables: HashMap::new(),
-            register_index: 0,
+            register_index: 1,
         }
     }
 

@@ -1,5 +1,5 @@
 use crate::ast::{BinOp, Expr, Program, Stmt};
-use std::{collections::HashMap, fmt::format};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum LoweringError {

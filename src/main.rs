@@ -1,18 +1,13 @@
-use clap::Args;
 use clap::Parser;
-use logos::source;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 use instant_compiler::{InstantArgs, MyLexer, ProgramParser, report_error};
 
 #[cfg(feature = "jvm_backend")]
 use instant_compiler::jvm::compile_jasmine;
 
-// #[cfg(feature = "llvm_backend")]
-// use instant_compiler::LLVMGenerator;
+#[cfg(feature = "llvm_backend")]
+use instant_compiler::llvm::compile_llvm;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = InstantArgs::parse();
@@ -77,12 +72,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
 
     #[cfg(feature = "jvm_backend")]
-    compile_jasmine(&mut program, &output_dir, file_stem, &args).expect("Lowering failed");
-    // #[cfg(feature = "llvm_backend")]
-    // {
-    //     println!("Generating LLVM...");
-    //     compile_llvm().map_err(|err| report_error(file_path, &source_code, err));
-    // }
-    //
+    compile_jasmine(&mut program, &output_dir, file_stem, &args).expect("JVM Lowering failed");
+
+    #[cfg(feature = "llvm_backend")]
+    compile_llvm(&mut program, &output_dir, file_stem, &args).expect("LLVM Lowering failed");
+
     Ok(())
 }
