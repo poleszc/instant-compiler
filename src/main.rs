@@ -1,6 +1,8 @@
 use std::fs;
 
-use instant_compiler::{JasmineGenerator, MyLexer, ProgramParser, report_error};
+use instant_compiler::{
+    JasmineGenerator, MyLexer, ProgramParser, llvm::LLVMGenerator, report_error,
+};
 
 fn main() {
     println!("Hello, Instant!");
@@ -16,9 +18,22 @@ fn main() {
             let mut generator = JasmineGenerator::new();
             match generator.lower_program(&mut program) {
                 Ok(code) => {
-                    let output_path = "output/Main.jasmine";
+                    let output_path = "output/Main.j";
                     fs::write(output_path, code).expect("File write fail");
                     println!("Generated Jasmine code!");
+                }
+                Err(err) => {
+                    println!("Error when generating code: {:?}", err);
+                }
+            }
+
+            println!("Generating LLVM code...");
+            let mut generator = LLVMGenerator::new();
+            match generator.lower_program(&mut program) {
+                Ok(code) => {
+                    let output_path = "output/Main.ll";
+                    fs::write(output_path, code).expect("File write fail");
+                    println!("Generated LLVM code!");
                 }
                 Err(err) => {
                     println!("Error when generating code: {:?}", err);

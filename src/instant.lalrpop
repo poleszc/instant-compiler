@@ -69,7 +69,7 @@ pub Expression: Box<ast::Expr> = {
     },
 
     // TODO: Addition is right assoc according to the desc.
-    #[precedence(level="3")] #[assoc(side="left")]
+    #[precedence(level="3")] #[assoc(side="right")]
     <lhs:Expression> "+" <rhs:Expression> => {
         Box::new(ast::Expr::BinaryOp {
             op: ast::BinOp::Add,
