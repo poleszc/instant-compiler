@@ -20,7 +20,7 @@ pub fn compile_llvm(
     let exe_path = dir.join(stem);
 
     let mut generator = LLVMGenerator::new();
-    let llvm_code = generator.lower_program(program).expect("Failed to compile");
+    let llvm_code = generator.lower_program(program)?;
 
     fs::write(&ll_path, llvm_code)
         .expect(format!("Failed to save the compiled code to: {}", ll_path.display()).as_str());

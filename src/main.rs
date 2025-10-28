@@ -73,24 +73,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "jvm_backend")]
     {
-    match compile_jasmine(&mut program, &output_dir, file_stem, &args) {
-        Ok(_) => (),
-        Err(err) => {
-            report_semantic_error(
-                input_file
-                    .to_str()
-                    .expect("Failed to convert input path to string"),
-                &source_code,
-                err,
-            );
-            return Err("Parsing failed".into());
-            
+        match compile_jasmine(&mut program, &output_dir, file_stem, &args) {
+            Ok(_) => (),
+            Err(err) => {
+                report_semantic_error(
+                    input_file
+                        .to_str()
+                        .expect("Failed to convert input path to string"),
+                    &source_code,
+                    err,
+                );
+                return Err("JVM lowering failed".into());
+            }
         }
-    }
     }
 
     #[cfg(feature = "llvm_backend")]
-    compile_llvm(&mut program, &output_dir, file_stem, &args).expect("LLVM Lowering failed");
+    {
+        match compile_llvm(&mut program, &output_dir, file_stem, &args) {
+            Ok(_) => (),
+            Err(err) => {
+                report_semantic_error(
+                    input_file
+                        .to_str()
+                        .expect("Failed to convert input path to string"),
+                    &source_code,
+                    err,
+                );
+                return Err("LLVM lowering failed".into());
+            }
+        }
+    }
 
     Ok(())
 }

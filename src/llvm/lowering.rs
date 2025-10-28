@@ -1,15 +1,10 @@
 use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
+use crate::error::LoweringError;
 use std::collections::HashMap;
 
 pub type RegisterName = String;
 pub type PointerName = String;
 pub type Constant = String;
-
-#[derive(Debug)]
-pub enum LoweringError {
-    UndefinedVariable(String),
-    ZeroDivision,
-}
 
 #[derive(Debug)]
 pub enum LLVMInstruction {
@@ -178,10 +173,21 @@ impl LLVMGenerator {
                     self.emit_instruction(&instr);
                     Ok(dest_reg)
                 } else {
-                    Err(LoweringError::UndefinedVariable(name.clone()))
+                    return Err(LoweringError::UndefinedVariable {
+                        name: name.clone(),
+                        position: expr.position,
+                    });
                 }
             }
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
+                if let ExprKind::Literal(0) = rhs.kind {
+                    if matches!(op, BinOp::Div) {
+                        return Err(LoweringError::ZeroDivision {
+                            position: rhs.position,
+                        });
+                    }
+                }
+
                 let lhs_reg = self.lower_expression(lhs)?;
                 let rhs_reg = self.lower_expression(rhs)?;
 

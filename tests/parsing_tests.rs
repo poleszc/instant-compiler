@@ -28,4 +28,4 @@ fn assert_parsing_fails(path: &str) {
     }
 }
 
-include!(concat!(env!("OUT_DIR"), "/parsing_tests.rs"));
+include!(concat!(env!("OUT_DIR"), "/generated_parsing_tests.rs"));
