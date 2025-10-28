@@ -19,7 +19,7 @@ pub fn compile_jasmine(
     let class_path = dir.join(format!("{}.class", stem));
 
     let mut generator = JasmineGenerator::new(stem);
-    let jasmine_code = generator.lower_program(program).expect("Failed to compile");
+    let jasmine_code = generator.lower_program(program)?;
 
     fs::write(&jasmine_path, jasmine_code).expect(
         format!(

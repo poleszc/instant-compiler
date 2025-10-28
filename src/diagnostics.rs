@@ -1,3 +1,4 @@
+use crate::LoweringError;
 use crate::tokens::{LexicalError, Token};
 use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
 use lalrpop_util::ParseError;
@@ -56,6 +57,41 @@ pub fn report_error(file_path: &str, source: &str, err: ParseError<usize, Token,
                 .with_message("Lexer error")
                 .with_note(format!("Additional information: {}", error)),
             0..0,
+        ),
+    };
+
+    report
+        .finish()
+        .print((file_path, source_cache))
+        .expect("Failed to report an error");
+}
+
+pub fn report_semantic_error(file_path: &str, source: &str, err: LoweringError) {
+    let source_cache = Source::from(source);
+    let config = Config::default().with_color(true).with_underlines(true);
+    let report = Report::build(ReportKind::Error, file_path, 0).with_config(config);
+    let mut colors = ColorGenerator::new();
+
+    let (report, _) = match err {
+        LoweringError::UndefinedVariable { name, position } => (
+            report
+                .with_message(format!("Undefined variable '{}'", name))
+                .with_label(
+                    Label::new((file_path, position.0..position.1))
+                        .with_message(format!(
+                            "This variable was not declared in the current scope."
+                        ))
+                        .with_color(colors.next()),
+                ),
+            position.0..position.1,
+        ),
+        LoweringError::ZeroDivision { position } => (
+            report.with_message("Zero division").with_label(
+                Label::new((file_path, position.0..position.1))
+                    .with_message("Zero literal on the right side of division operator.")
+                    .with_color(colors.next()),
+            ),
+            position.0..position.1,
         ),
     };
 

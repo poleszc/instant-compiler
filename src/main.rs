@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::{fs, path::Path};
 
-use instant_compiler::{InstantArgs, MyLexer, ProgramParser, report_error};
+use instant_compiler::{InstantArgs, MyLexer, ProgramParser, report_error, report_semantic_error};
 
 #[cfg(feature = "jvm_backend")]
 use instant_compiler::jvm::compile_jasmine;
@@ -72,7 +72,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
 
     #[cfg(feature = "jvm_backend")]
-    compile_jasmine(&mut program, &output_dir, file_stem, &args).expect("JVM Lowering failed");
+    {
+    match compile_jasmine(&mut program, &output_dir, file_stem, &args) {
+        Ok(_) => (),
+        Err(err) => {
+            report_semantic_error(
+                input_file
+                    .to_str()
+                    .expect("Failed to convert input path to string"),
+                &source_code,
+                err,
+            );
+            return Err("Parsing failed".into());
+            
+        }
+    }
+    }
 
     #[cfg(feature = "llvm_backend")]
     compile_llvm(&mut program, &output_dir, file_stem, &args).expect("LLVM Lowering failed");

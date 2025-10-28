@@ -1,11 +1,6 @@
 use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
+use crate::error::LoweringError;
 use std::collections::HashMap;
-
-#[derive(Debug)]
-pub enum LoweringError {
-    UndefinedVariable(String),
-    ZeroDivision,
-}
 
 #[derive(Debug, Default)]
 pub struct JasmineGenerator {
@@ -64,11 +59,22 @@ impl JasmineGenerator {
                 if let Some(index) = self.variables.get(name) {
                     self.emit_instruction(&format!("iload {}", index));
                 } else {
-                    return Err(LoweringError::UndefinedVariable(name.clone()));
+                    return Err(LoweringError::UndefinedVariable {
+                        name: name.clone(),
+                        position: expr.position,
+                    });
                 }
             }
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 let is_commutative = matches!(op, BinOp::Add | BinOp::Mul);
+
+                if let ExprKind::Literal(0) = rhs.kind {
+                    if matches!(op, BinOp::Div) {
+                        return Err(LoweringError::ZeroDivision {
+                            position: rhs.position,
+                        });
+                    }
+                }
 
                 // Left subtree is bigger, then we swap the order of calculations.
                 if rhs.get_weight().expect("Weight not calculated for rhs")

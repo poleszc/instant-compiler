@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SourcePosition(pub usize, pub usize);
 impl From<(usize, usize)> for SourcePosition {
     fn from(value: (usize, usize)) -> Self {
