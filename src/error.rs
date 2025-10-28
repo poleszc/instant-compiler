@@ -1,5 +1,12 @@
+use crate::ast::SourcePosition;
+
 #[derive(Debug)]
 pub enum LoweringError {
-    UndefinedVariable(String),
-    ZeroDivision,
+    UndefinedVariable {
+        name: String,
+        position: SourcePosition,
+    },
+    ZeroDivision {
+        position: SourcePosition,
+    },
 }

@@ -1,17 +1,43 @@
 use std::fmt::Debug;
 
+
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct SourcePosition(pub usize, pub usize);
+impl From<(usize, usize)> for  SourcePosition{
+    fn from(value: (usize, usize)) -> Self {
+        SourcePosition(value.0, value.1)
+    }
+    
+}
+
+
 #[derive(Debug, PartialEq)]
 pub struct Program(pub Vec<Stmt>);
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Stmt {
+    pub kind: StmtKind,
+    pub position: SourcePosition,
+}
+
 // TODO: Why Eq can't be here?
 #[derive(Debug, PartialEq, Clone)]
-pub enum Stmt {
+pub enum StmtKind {
     Assignment { name: String, value: Box<Expr> },
     Expression { value: Box<Expr> },
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Expr {
+pub struct Expr {
+    pub kind: ExprKind,
+    pub position: SourcePosition,
+}
+
+
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ExprKind {
     Literal(i64),
     Identifier(String),
     BinaryOp {

@@ -38,11 +38,19 @@ Comma<T>: Vec<T> = {
 }
 
 pub Statement: ast::Stmt = {
-    <name:"identifier"> "=" <value:Expression> => {
-        ast::Stmt::Assignment { name, value }
+    <start: @L><name:"identifier"> "=" <value:Expression><end: @R> => {
+        ast::Stmt {
+            kind: ast::Stmt::Assignment { name, value },
+            position: SourcePosition(start, end),
+        }
+
+
     },
     <expr:Expression> => {
-        ast::Stmt::Expression { value: expr }
+        ast::Stmt {
+            kind: ast::Stmt::Expression { value: expr }
+            position: expr.position,
+        }
     },
 }
 
@@ -52,48 +60,75 @@ pub Expression: Box<ast::Expr> = {
 
     #[precedence(level="2")] #[assoc(side="left")]
     <lhs:Expression> "*" <rhs:Expression> => {
-        Box::new(ast::Expr::BinaryOp {
-            op: ast::BinOp::Mul,
-            lhs,
-            rhs,
-            weight: None,
-        })
+        Box::new(
+            ast::Expr {
+                kind: ast::Expr::BinaryOp {
+                    op: ast::BinOp::Mul,
+                    lhs,
+                    rhs,
+                    weight: None,
+                },
+                position: SourcePosition(lhs.position.0, rhs.position.1),
+            }
+        )
     },
     <lhs:Expression> "/" <rhs:Expression> => {
-        Box::new(ast::Expr::BinaryOp {
-            op: ast::BinOp::Div,
-            lhs,
-            rhs,
-            weight: None,
-        })
+        Box::new(
+            ast::Expr {
+                kind: ast::Expr::BinaryOp {
+                    op: ast::BinOp::Div,
+                    lhs,
+                    rhs,
+                    weight: None,
+                },
+                position: SourcePosition(lhs.position.0, rhs.position.1),
+            }
+        )
     },
 
-    // TODO: Addition is right assoc according to the desc.
     #[precedence(level="3")] #[assoc(side="right")]
     <lhs:Expression> "+" <rhs:Expression> => {
-        Box::new(ast::Expr::BinaryOp {
-            op: ast::BinOp::Add,
-            lhs,
-            rhs,
-            weight: None,
-        })
+        Box::new(
+            ast::Expr {
+                kind: ast::Expr::BinaryOp {
+                    op: ast::BinOp::Add,
+                    lhs,
+                    rhs,
+                    weight: None,
+                },
+                position: SourcePosition(lhs.position.0, rhs.position.1),
+            }
+        )
     },
     <lhs:Expression> "-" <rhs:Expression> => {
-        Box::new(ast::Expr::BinaryOp {
-            op: ast::BinOp::Sub,
-            lhs,
-            rhs,
-            weight: None,
-        })
+        Box::new(
+            ast::Expr {
+                kind: ast::Expr::BinaryOp {
+                    op: ast::BinOp::Sub,
+                    lhs,
+                    rhs,
+                    weight: None,
+                },
+                position: SourcePosition(lhs.position.0, rhs.position.1),
+            }
+        )
     },
 }
 
 pub Term: Box<ast::Expr> = {
-    <val:"int"> => {
-        Box::new(ast::Expr::Literal(val))
+    <start: @L><val:"int"><end: @R> => {
+        Box::new(ast::Expr {
+            kind: ast::Expr::Literal(val),
+            position: SourcePosition(start, end),
+        })
+
+
     },
-    <name:"identifier"> => {
-        Box::new(ast::Expr::Identifier(name))
+    <start: @L><name:"identifier"><end: @R> => {
+        Box::new(ast::Expr {
+            kind: ast::Expr::Identifier(name),
+            position: SourcePosition(start, end),
+        })
     },
     "(" <Expression> ")",
 }
