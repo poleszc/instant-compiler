@@ -1,4 +1,4 @@
-use crate::ast::{BinOp, Expr, Program, Stmt};
+use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use std::collections::HashMap;
 
 pub type RegisterName = String;
@@ -142,8 +142,8 @@ impl LLVMGenerator {
 
     // Performs the lowering of a single statement.
     fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), LoweringError> {
-        match stmt {
-            Stmt::Assignment { name, value } => {
+        match &stmt.kind {
+            StmtKind::Assignment { name, value } => {
                 let val_reg = self.lower_expression(value)?;
                 let ptr_name = self.get_or_create_variable(name);
                 let instr = LLVMInstruction::Store {
@@ -152,7 +152,7 @@ impl LLVMGenerator {
                 };
                 self.emit_instruction(&instr);
             }
-            Stmt::Expression { value } => {
+            StmtKind::Expression { value } => {
                 let val_reg = self.lower_expression(value)?;
                 let instr = LLVMInstruction::CallPrint { value: val_reg };
                 self.emit_instruction(&instr);
@@ -165,9 +165,9 @@ impl LLVMGenerator {
 
     // Performs the lowering of a single expression.
     fn lower_expression(&mut self, expr: &Expr) -> Result<RegisterName, LoweringError> {
-        match expr {
-            Expr::Literal(val) => Ok(val.to_string()),
-            Expr::Identifier(name) => {
+        match &expr.kind {
+            ExprKind::Literal(val) => Ok(val.to_string()),
+            ExprKind::Identifier(name) => {
                 if let Some(ptr_name) = self.variables.get(name).cloned() {
                     let dest_reg = self.new_register();
                     let instr = LLVMInstruction::Load {
@@ -181,7 +181,7 @@ impl LLVMGenerator {
                     Err(LoweringError::UndefinedVariable(name.clone()))
                 }
             }
-            Expr::BinaryOp { op, lhs, rhs, .. } => {
+            ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 let lhs_reg = self.lower_expression(lhs)?;
                 let rhs_reg = self.lower_expression(rhs)?;
 

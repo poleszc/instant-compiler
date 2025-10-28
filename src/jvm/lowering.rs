@@ -1,4 +1,4 @@
-use crate::ast::{BinOp, Expr, Program, Stmt};
+use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -40,13 +40,13 @@ impl JasmineGenerator {
 
     // Performs the lowering of a single statement.
     fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), LoweringError> {
-        match stmt {
-            Stmt::Assignment { name, value } => {
+        match &stmt.kind {
+            StmtKind::Assignment { name, value } => {
                 self.lower_expression(value)?;
                 let var_index = self.get_or_create_variable_index(name);
                 self.emit_instruction(&format!("istore {}", var_index));
             }
-            Stmt::Expression { value } => {
+            StmtKind::Expression { value } => {
                 self.lower_expression(value)?;
                 self.emit_print();
             }
@@ -56,18 +56,18 @@ impl JasmineGenerator {
 
     // Performs the lowering of a single expression.
     fn lower_expression(&mut self, expr: &Expr) -> Result<(), LoweringError> {
-        match expr {
-            Expr::Literal(val) => {
+        match &expr.kind {
+            ExprKind::Literal(val) => {
                 self.emit_instruction(&format!("ldc {}", val));
             }
-            Expr::Identifier(name) => {
+            ExprKind::Identifier(name) => {
                 if let Some(index) = self.variables.get(name) {
                     self.emit_instruction(&format!("iload {}", index));
                 } else {
                     return Err(LoweringError::UndefinedVariable(name.clone()));
                 }
             }
-            Expr::BinaryOp { op, lhs, rhs, .. } => {
+            ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 let is_commutative = matches!(op, BinOp::Add | BinOp::Mul);
 
                 // Left subtree is bigger, then we swap the order of calculations.

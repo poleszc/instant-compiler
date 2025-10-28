@@ -1,16 +1,12 @@
 use std::fmt::Debug;
 
-
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct SourcePosition(pub usize, pub usize);
-impl From<(usize, usize)> for  SourcePosition{
+impl From<(usize, usize)> for SourcePosition {
     fn from(value: (usize, usize)) -> Self {
         SourcePosition(value.0, value.1)
     }
-    
 }
-
 
 #[derive(Debug, PartialEq)]
 pub struct Program(pub Vec<Stmt>);
@@ -33,8 +29,6 @@ pub struct Expr {
     pub kind: ExprKind,
     pub position: SourcePosition,
 }
-
-
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ExprKind {
@@ -66,11 +60,11 @@ impl Program {
 
 impl Stmt {
     fn calculate_weights(&mut self) {
-        match self {
-            Stmt::Assignment { value, .. } => {
+        match &mut self.kind {
+            StmtKind::Assignment { value, .. } => {
                 value.calculate_weights();
             }
-            Stmt::Expression { value } => {
+            StmtKind::Expression { value } => {
                 value.calculate_weights();
             }
         }
@@ -79,10 +73,10 @@ impl Stmt {
 
 impl Expr {
     pub fn calculate_weights(&mut self) -> u64 {
-        match self {
-            Expr::Literal(_) => 1,
-            Expr::Identifier(_) => 1,
-            Expr::BinaryOp {
+        match &mut self.kind {
+            ExprKind::Literal(_) => 1,
+            ExprKind::Identifier(_) => 1,
+            ExprKind::BinaryOp {
                 lhs, rhs, weight, ..
             } => {
                 let lhs_weight = lhs.calculate_weights();
@@ -102,8 +96,8 @@ impl Expr {
     }
 
     pub fn get_weight(&self) -> Option<u64> {
-        match self {
-            Expr::BinaryOp { weight, .. } => *weight,
+        match &self.kind {
+            ExprKind::BinaryOp { weight, .. } => *weight,
             _ => Some(1),
         }
     }

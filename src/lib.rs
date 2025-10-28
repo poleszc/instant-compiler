@@ -16,6 +16,7 @@ pub mod jvm;
 #[cfg(feature = "llvm_backend")]
 pub mod llvm;
 
+pub use crate::ast::SourcePosition;
 pub use crate::diagnostics::report_error;
 pub use crate::error::LoweringError;
 pub use crate::instant::ProgramParser;
