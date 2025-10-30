@@ -32,7 +32,7 @@ pub struct Expr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ExprKind {
-    Literal(i64),
+    Literal(i32),
     Identifier(String),
     BinaryOp {
         op: BinOp,

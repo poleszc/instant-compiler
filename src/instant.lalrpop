@@ -10,7 +10,7 @@ extern {
       
     enum Token {
         "identifier" => Token::Identifier(<String>),
-        "int" => Token::Integer(<i64>),
+        "int" => Token::Integer(<i32>),
         "(" => Token::LParen,
         ")" => Token::RParen,
         "=" => Token::Assign,

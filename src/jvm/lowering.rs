@@ -2,6 +2,44 @@ use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use crate::error::LoweringError;
 use std::collections::HashMap;
 
+pub enum JVMInstruction {
+    IAdd,
+    IMul,
+    ISub,
+    IDiv,
+    Swap,
+    IStore { index: u32 },
+    ILoad { index: u32 },
+    IConst { value: i32 },
+    GetStatic { object: String },
+    InvokeVirtual { method: String },
+    Return,
+}
+
+impl JVMInstruction {
+    fn stringify(&self) -> String {
+        match self {
+            JVMInstruction::IAdd => "iadd".to_string(),
+            JVMInstruction::ISub => "isub".to_string(),
+            JVMInstruction::IMul => "imul".to_string(),
+            JVMInstruction::IDiv => "idiv".to_string(),
+            JVMInstruction::Swap => "swap".to_string(),
+            JVMInstruction::ILoad { index } => format!("iload {}", index),
+            JVMInstruction::IStore { index } => format!("istore {}", index),
+            JVMInstruction::IConst { value } => {
+                if *value <= 5 {
+                    format!("iconst_{}", value)
+                } else {
+                    format!("ldc {}", value)
+                }
+            }
+            JVMInstruction::GetStatic { object } => format!("getstatic {}", object),
+            JVMInstruction::InvokeVirtual { method } => format!("invokevirtual {}", method),
+            JVMInstruction::Return => "return".to_string(),
+        }
+    }
+}
+type VarIndex = u32;
 #[derive(Debug, Default)]
 pub struct JasmineGenerator {
     class_name: String,
@@ -9,7 +47,7 @@ pub struct JasmineGenerator {
     // Mapping of local variables to their index on the JVM stack.
     variables: HashMap<String, u32>,
     // TODO: Use type VarIndex = u32 instead of that.
-    stack_index: u32,
+    stack_index: VarIndex,
 }
 
 impl JasmineGenerator {
@@ -18,7 +56,7 @@ impl JasmineGenerator {
             class_name: class_name.to_string(),
             output: String::new(),
             variables: HashMap::new(),
-            stack_index: 1,
+            stack_index: 1, // Starting from 1, since 0 is reserved for args.
         }
     }
 
@@ -39,7 +77,7 @@ impl JasmineGenerator {
             StmtKind::Assignment { name, value } => {
                 self.lower_expression(value)?;
                 let var_index = self.get_or_create_variable_index(name);
-                self.emit_instruction(&format!("istore {}", var_index));
+                self.emit_instruction(JVMInstruction::IStore { index: var_index });
             }
             StmtKind::Expression { value } => {
                 self.lower_expression(value)?;
@@ -53,11 +91,11 @@ impl JasmineGenerator {
     fn lower_expression(&mut self, expr: &Expr) -> Result<(), LoweringError> {
         match &expr.kind {
             ExprKind::Literal(val) => {
-                self.emit_instruction(&format!("ldc {}", val));
+                self.emit_instruction(JVMInstruction::IConst { value: *val });
             }
             ExprKind::Identifier(name) => {
                 if let Some(index) = self.variables.get(name) {
-                    self.emit_instruction(&format!("iload {}", index));
+                    self.emit_instruction(JVMInstruction::ILoad { index: *index });
                 } else {
                     return Err(LoweringError::UndefinedVariable {
                         name: name.clone(),
@@ -88,16 +126,15 @@ impl JasmineGenerator {
 
                     // For non commutative ops we swap the order on the stack.
                     if !is_commutative {
-                        self.emit_instruction("swap");
+                        self.emit_instruction(JVMInstruction::Swap);
                     }
                 }
 
                 let instr = match op {
-                    BinOp::Add => "iadd",
-                    BinOp::Sub => "isub",
-                    BinOp::Mul => "imul",
-                    // TODO: Check for zero division.
-                    BinOp::Div => "idiv",
+                    BinOp::Add => JVMInstruction::IAdd,
+                    BinOp::Sub => JVMInstruction::ISub,
+                    BinOp::Mul => JVMInstruction::IMul,
+                    BinOp::Div => JVMInstruction::IDiv,
                 };
                 self.emit_instruction(instr);
             }
@@ -116,10 +153,9 @@ impl JasmineGenerator {
         }
     }
 
-    fn emit_instruction(&mut self, instruction: &str) {
-        // TODO: Modify this to use iconst, iload, etc.
+    fn emit_instruction(&mut self, instruction: JVMInstruction) {
         self.output.push_str("    ");
-        self.output.push_str(instruction);
+        self.output.push_str(instruction.stringify().as_str());
         self.output.push('\n');
     }
 
@@ -140,14 +176,18 @@ impl JasmineGenerator {
     }
 
     fn emit_print(&mut self) {
-        self.emit_instruction("getstatic java/lang/System/out Ljava/io/PrintStream;");
-        self.emit_instruction("swap");
-        self.emit_instruction("invokevirtual java/io/PrintStream/println(I)V");
+        self.emit_instruction(JVMInstruction::GetStatic {
+            object: "java/lang/System/out Ljava/io/PrintStream;".to_string(),
+        });
+        self.emit_instruction(JVMInstruction::Swap);
+        self.emit_instruction(JVMInstruction::InvokeVirtual {
+            method: "java/io/PrintStream/println(I)V".to_string(),
+        });
     }
 
     fn emit_postambule(&mut self) {
         self.emit("");
-        self.emit("return");
+        self.emit_instruction(JVMInstruction::Return);
         self.emit(".end method");
     }
 }
