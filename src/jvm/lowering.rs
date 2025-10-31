@@ -3,14 +3,15 @@ use crate::jvm::JVMInstruction;
 use crate::parser::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use std::collections::HashMap;
 
-type VarIndex = u32;
 #[derive(Debug, Default)]
 pub struct JasmineGenerator {
     class_name: String,
     output: String,
     // Mapping of local variables to their index on the JVM stack.
     variables: HashMap<String, u32>,
-    stack_index: VarIndex,
+    stack_size: i32,
+    limit_locals: u32,
+    limit_stack: u32,
 }
 
 impl JasmineGenerator {
@@ -19,18 +20,28 @@ impl JasmineGenerator {
             class_name: class_name.to_string(),
             output: String::new(),
             variables: HashMap::new(),
-            stack_index: 1, // Starting from 1, since 0 is reserved for args.
+            stack_size: 0,   // Starting from 1, since 0 is reserved for args.
+            limit_locals: 1, // Starting from 1, since args exist.
+            limit_stack: 0,
         }
     }
 
     // Performs the lowering for the whole program.
     pub fn lower_program(&mut self, program: &mut Program) -> Result<String, SemanticError> {
         program.calculate_weights();
-        self.emit_preambule();
+
+        let mut method_body = String::new();
+        std::mem::swap(&mut self.output, &mut method_body);
+
         for stmt in &program.0 {
             self.lower_statement(stmt)?;
         }
+        std::mem::swap(&mut self.output, &mut method_body);
+
+        self.emit_preambule();
+        self.output.push_str(&method_body);
         self.emit_postambule();
+
         Ok(self.output.clone())
     }
 
@@ -70,19 +81,17 @@ impl JasmineGenerator {
                 let is_commutative = matches!(op, BinOp::Add | BinOp::Mul);
 
                 if let ExprKind::Literal(0) = rhs.kind
-                    && matches!(op, BinOp::Div) {
-                        return Err(SemanticError::ZeroDivision {
-                            position: rhs.position,
-                        });
-                    }
+                    && matches!(op, BinOp::Div)
+                {
+                    return Err(SemanticError::ZeroDivision {
+                        position: rhs.position,
+                    });
+                }
 
                 // Left subtree is bigger, then we swap the order of calculations.
                 if rhs.get_weight().expect("Weight not calculated for rhs")
                     > lhs.get_weight().expect("Weight not calculated for lhs")
                 {
-                    self.lower_expression(lhs)?;
-                    self.lower_expression(rhs)?;
-                } else {
                     self.lower_expression(rhs)?;
                     self.lower_expression(lhs)?;
 
@@ -90,6 +99,9 @@ impl JasmineGenerator {
                     if !is_commutative {
                         self.emit_instruction(JVMInstruction::Swap);
                     }
+                } else {
+                    self.lower_expression(lhs)?;
+                    self.lower_expression(rhs)?;
                 }
 
                 let instr = match op {
@@ -108,14 +120,37 @@ impl JasmineGenerator {
         if let Some(index) = self.variables.get(name) {
             *index
         } else {
-            let index = self.stack_index;
-            self.stack_index += 1;
+            let index = self.limit_locals;
+            self.limit_locals += 1;
             self.variables.insert(name.to_string(), index);
             index
         }
     }
 
+    fn update_stack(&mut self, change: i32) {
+        self.stack_size += change;
+        assert!(self.stack_size >= 0);
+        if self.stack_size as u32 > self.limit_stack {
+            self.limit_stack = self.stack_size as u32;
+        }
+    }
+
     fn emit_instruction(&mut self, instruction: JVMInstruction) {
+        let stack_change = match instruction {
+            JVMInstruction::IAdd
+            | JVMInstruction::ISub
+            | JVMInstruction::IMul
+            | JVMInstruction::IDiv => -1, // Pops two pushes one
+            JVMInstruction::IStore { .. } => -1,
+            JVMInstruction::ILoad { .. } => 1,
+            JVMInstruction::IConst { .. } => 1,
+            JVMInstruction::GetStatic { .. } => 1,
+            JVMInstruction::InvokeVirtual { .. } => -2, // Pops the obj and the value form the stack. Pushes nothing.
+            JVMInstruction::Swap { .. } => 0,
+            JVMInstruction::Return { .. } => 0,
+        };
+        self.update_stack(stack_change);
+
         self.output.push_str("    ");
         self.output.push_str(instruction.stringify().as_str());
         self.output.push('\n');
@@ -131,9 +166,8 @@ impl JasmineGenerator {
         self.emit(".super java/lang/Object");
         self.emit("");
         self.emit(".method public static main([Ljava/lang/String;)V");
-        // TODO: Change that to use actual numbers.
-        self.emit(" .limit stack 100");
-        self.emit(" .limit locals 100");
+        self.emit(&format!(" .limit stack {}", self.limit_stack));
+        self.emit(&format!(" .limit locals {}", self.limit_locals));
         self.emit("");
     }
 
