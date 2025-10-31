@@ -10,7 +10,7 @@ pub fn compile_llvm(
     stem: &str,
     args: &InstantArgs,
 ) -> Result<(), CompilerError> {
-    println!("[LLVM] Generating LLVM IR code...");
+    eprintln!("[LLVM] Generating LLVM IR code...");
 
     let ll_path = dir.join(format!("{}.ll", stem));
     let bc_path = dir.join(format!("{}.bc", stem));
@@ -19,9 +19,9 @@ pub fn compile_llvm(
     let llvm_code = generator.lower_program(program)?;
 
     fs::write(&ll_path, llvm_code)?;
-    println!("[LLVM] Generated file: {}", ll_path.display());
+    eprintln!("[LLVM] Generated file: {}", ll_path.display());
 
-    println!("[LLVM] Assembling bitcode...");
+    eprintln!("[LLVM] Assembling bitcode...");
     let output = Command::new("llvm-as")
         .arg(&ll_path)
         .arg("-o")
@@ -35,18 +35,18 @@ pub fn compile_llvm(
         )));
     }
 
-    println!("[LLVM] Generated file: {}", bc_path.display());
+    eprintln!("[LLVM] Generated file: {}", bc_path.display());
 
     if args.run {
-        println!("[LLVM] Running program");
+        eprintln!("[LLVM] Running program");
         let run_output = Command::new("lli").arg(&bc_path).output()?;
 
         if !run_output.stdout.is_empty() {
-            println!("{}", String::from_utf8_lossy(&run_output.stdout))
+            eprintln!("{}", String::from_utf8_lossy(&run_output.stdout))
         }
 
         if !run_output.stderr.is_empty() {
-            println!("{}", String::from_utf8_lossy(&run_output.stderr))
+            eprintln!("{}", String::from_utf8_lossy(&run_output.stderr))
         }
 
         if !run_output.status.success() {
@@ -55,7 +55,7 @@ pub fn compile_llvm(
             ));
         }
     } else {
-        println!("[LLVM] Linking executable");
+        eprintln!("[LLVM] Linking executable");
         let run_output = Command::new("clang")
             .arg(&bc_path)
             .arg("lib/llvm/runtime.bc")
@@ -64,11 +64,11 @@ pub fn compile_llvm(
             .output()?;
 
         if !run_output.stdout.is_empty() {
-            println!("{}", String::from_utf8_lossy(&run_output.stdout))
+            eprintln!("{}", String::from_utf8_lossy(&run_output.stdout))
         }
 
         if !run_output.stderr.is_empty() {
-            println!("{}", String::from_utf8_lossy(&run_output.stderr))
+            eprintln!("{}", String::from_utf8_lossy(&run_output.stderr))
         }
 
         if !run_output.status.success() {

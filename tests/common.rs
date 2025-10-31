@@ -78,8 +78,9 @@ pub fn run_itest(input_path: &str, expected_output_path: &str, backend: Backend)
 
     assert!(
         output.status.success(),
-        "Expected LLVM compilation to succeed for '{}', but it failed",
-        input_path
+        "Expected compilation to succeed for '{}', but it failed.\n[STDERR]:\n{}",
+        input_path,
+        String::from_utf8_lossy(&output.stderr)
     );
 
     let actual_output = String::from_utf8_lossy(&output.stdout);
