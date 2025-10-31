@@ -3,16 +3,6 @@ name = "instant-compiler"
 version = "0.1.0"
 edition = "2024"
 
-[[bin]]
-name = "insc_jvm"
-path = "src/main.rs"
-required-features = ["jvm_backend"]
-
-[[bin]]
-name = "insc_llvm"
-path = "src/main.rs"
-required-features = ["llvm_backend"]
-
 [build-dependencies]
 lalrpop = "0.22.2"
 

@@ -1,17 +1,15 @@
-use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
-use crate::error::LoweringError;
-use crate::llvm::*;
+use crate::error::SemanticError;
+use crate::llvm::{LLVMInstruction, PointerName, RegisterName};
+use crate::parser::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use std::collections::HashMap;
 
 type RegisterIndex = i32;
-
 
 #[derive(Debug, Default)]
 pub struct LLVMGenerator {
     output: String,
     // Mapping of local variables to their pointer name in generated code.
     variables: HashMap<String, PointerName>,
-    // TODO": Register index
     register_index: RegisterIndex,
 }
 
@@ -20,6 +18,7 @@ impl LLVMGenerator {
         Self {
             output: String::new(),
             variables: HashMap::new(),
+            // TODO: Is that true? Do we start from one?
             register_index: 1,
         }
     }
@@ -45,7 +44,7 @@ impl LLVMGenerator {
     }
 
     // Performs the lowering for the whole program.
-    pub fn lower_program(&mut self, program: &mut Program) -> Result<String, LoweringError> {
+    pub fn lower_program(&mut self, program: &mut Program) -> Result<String, SemanticError> {
         self.emit_preambule();
         for stmt in &program.0 {
             self.lower_statement(stmt)?;
@@ -55,7 +54,7 @@ impl LLVMGenerator {
     }
 
     // Performs the lowering of a single statement.
-    fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), LoweringError> {
+    fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
         match &stmt.kind {
             StmtKind::Assignment { name, value } => {
                 let val_reg = self.lower_expression(value)?;
@@ -78,7 +77,7 @@ impl LLVMGenerator {
     }
 
     // Performs the lowering of a single expression.
-    fn lower_expression(&mut self, expr: &Expr) -> Result<RegisterName, LoweringError> {
+    fn lower_expression(&mut self, expr: &Expr) -> Result<RegisterName, SemanticError> {
         match &expr.kind {
             ExprKind::Literal(val) => Ok(val.to_string()),
             ExprKind::Identifier(name) => {
@@ -92,16 +91,16 @@ impl LLVMGenerator {
                     self.emit_instruction(&instr);
                     Ok(dest_reg)
                 } else {
-                    return Err(LoweringError::UndefinedVariable {
+                    Err(SemanticError::UndefinedVariable {
                         name: name.clone(),
                         position: expr.position,
-                    });
+                    })
                 }
             }
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 if let ExprKind::Literal(0) = rhs.kind {
                     if matches!(op, BinOp::Div) {
-                        return Err(LoweringError::ZeroDivision {
+                        return Err(SemanticError::ZeroDivision {
                             position: rhs.position,
                         });
                     }

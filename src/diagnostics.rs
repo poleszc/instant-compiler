@@ -1,9 +1,15 @@
-use crate::LoweringError;
-use crate::tokens::{LexicalError, Token};
+use crate::error::{CompilerError, SemanticError};
+use crate::parser::tokens::{LexicalError, Token};
 use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
 use lalrpop_util::ParseError;
 
-pub fn report_error(file_path: &str, source: &str, err: ParseError<usize, Token, LexicalError>) {
+// TODO: Better error file with more structure.
+fn report_parsing_error(
+    file_path: &str,
+    source: &str,
+    err: ParseError<usize, Token, LexicalError>,
+) {
+    // TODO: Add nicer errors with more colors.
     let source_cache = Source::from(source);
     let config = Config::default().with_color(true).with_underlines(true);
     let report = Report::build(ReportKind::Error, file_path, 0).with_config(config);
@@ -66,24 +72,26 @@ pub fn report_error(file_path: &str, source: &str, err: ParseError<usize, Token,
         .expect("Failed to report an error");
 }
 
-pub fn report_semantic_error(file_path: &str, source: &str, err: LoweringError) {
+fn report_semantic_error(file_path: &str, source: &str, err: SemanticError) {
     let source_cache = Source::from(source);
     let config = Config::default().with_color(true).with_underlines(true);
     let report = Report::build(ReportKind::Error, file_path, 0).with_config(config);
     let mut colors = ColorGenerator::new();
 
     let (report, _) = match err {
-        LoweringError::UndefinedVariable { name, position } => (
+        SemanticError::UndefinedVariable { name, position } => (
             report
                 .with_message(format!("Undefined variable '{}'", name))
                 .with_label(
                     Label::new((file_path, position.0..position.1))
-                        .with_message("This variable was not declared in the current scope.".to_string())
+                        .with_message(
+                            "This variable was not declared in the current scope.".to_string(),
+                        )
                         .with_color(colors.next()),
                 ),
             position.0..position.1,
         ),
-        LoweringError::ZeroDivision { position } => (
+        SemanticError::ZeroDivision { position } => (
             report.with_message("Zero division").with_label(
                 Label::new((file_path, position.0..position.1))
                     .with_message("Zero literal on the right side of division operator.")
@@ -97,4 +105,25 @@ pub fn report_semantic_error(file_path: &str, source: &str, err: LoweringError) 
         .finish()
         .print((file_path, source_cache))
         .expect("Failed to report an error");
+}
+
+pub fn report_error(file_path: &str, source: &str, err: CompilerError) {
+    match err {
+        CompilerError::Parsing(parse_err) => report_parsing_error(file_path, source, parse_err),
+        CompilerError::Semantic(sematic_err) => {
+            report_semantic_error(file_path, source, sematic_err)
+        }
+        CompilerError::Io(io_err) => {
+            // TODO: Make this better. Use ariadne.
+            println!("[I/O Error] {}: {}", file_path, io_err)
+        }
+        CompilerError::ExternalCommand(msg) => {
+            // TODO: Make this better. Use ariadne.
+            println!("[External Command Error]: {}", msg)
+        }
+        CompilerError::Other(msg) => {
+            // TODO: Make this better. Use ariadne.
+            println!("[Error]: {}", msg)
+        }
+    }
 }

@@ -1,70 +1,80 @@
 use crate::InstantArgs;
-use crate::LoweringError;
-use crate::ast::Program;
+use crate::error::CompilerError;
 use crate::llvm::LLVMGenerator;
-use std::fs;
-use std::path::Path;
-use std::process::Command;
+use crate::parser::ast::Program;
+use std::{fs, path::Path, process::Command};
 
-#[cfg(feature = "llvm_backend")]
 pub fn compile_llvm(
     program: &mut Program,
     dir: &Path,
     stem: &str,
     args: &InstantArgs,
-) -> Result<(), LoweringError> {
+) -> Result<(), CompilerError> {
     println!("[LLVM] Generating LLVM IR code...");
 
     let ll_path = dir.join(format!("{}.ll", stem));
     let bc_path = dir.join(format!("{}.bc", stem));
     let exe_path = dir.join(stem);
-
     let mut generator = LLVMGenerator::new();
     let llvm_code = generator.lower_program(program)?;
 
-    fs::write(&ll_path, llvm_code)
-        .expect(format!("Failed to save the compiled code to: {}", ll_path.display()).as_str());
+    fs::write(&ll_path, llvm_code)?;
     println!("[LLVM] Generated file: {}", ll_path.display());
 
     println!("[LLVM] Assembling bitcode...");
-    let status = Command::new("llvm-as")
+    let output = Command::new("llvm-as")
         .arg(&ll_path)
         .arg("-o")
         .arg(&bc_path)
-        .status()
-        .expect("Failed to assemble LLVM bitcode");
-    if !status.success() {
-        // TODO: This is ugly
-        println!("llvm-as exited with error");
-        return Ok(());
+        .output()?;
+
+    if !output.status.success() {
+        return Err(CompilerError::ExternalCommand(format!(
+            "LLVM assembler failed.\n[STDERR]:\n{}",
+            String::from_utf8_lossy(&output.stderr)
+        )));
     }
 
     println!("[LLVM] Generated file: {}", bc_path.display());
 
     if args.run {
         println!("[LLVM] Running program");
-        let status = Command::new("lli")
-            .arg(&bc_path)
-            .status()
-            .expect("Failed to run LLVM bitcode");
-        if !status.success() {
-            // TODO: This is ugly
-            println!("lli exited with error");
-            return Ok(());
+        let run_output = Command::new("lli").arg(&bc_path).output()?;
+
+        if !run_output.stdout.is_empty() {
+            println!("{}", String::from_utf8_lossy(&run_output.stdout))
+        }
+
+        if !run_output.stderr.is_empty() {
+            println!("{}", String::from_utf8_lossy(&run_output.stderr))
+        }
+
+        if !run_output.status.success() {
+            return Err(CompilerError::ExternalCommand(
+                "Program execution exited with a non-zero status.".to_string(),
+            ));
         }
     } else {
         println!("[LLVM] Linking executable");
-        let status = Command::new("clang")
+        let run_output = Command::new("clang")
             .arg(&bc_path)
             .arg("lib/llvm/runtime.bc")
             .arg("-o")
             .arg(&exe_path)
-            .status()
-            .expect(format!("Failed to link a library: {}", exe_path.display()).as_str());
-        if !status.success() {
-            // TODO: This is ugly
-            println!("lli exited with error");
-            return Ok(());
+            .output()?;
+
+        if !run_output.stdout.is_empty() {
+            println!("{}", String::from_utf8_lossy(&run_output.stdout))
+        }
+
+        if !run_output.stderr.is_empty() {
+            println!("{}", String::from_utf8_lossy(&run_output.stderr))
+        }
+
+        if !run_output.status.success() {
+            return Err(CompilerError::ExternalCommand(
+                "Failed to link an executable".to_string(),
+            ));
         }
     }
 

@@ -1,6 +1,5 @@
 pub type RegisterName = String;
 pub type PointerName = String;
-pub type Constant = String;
 
 #[derive(Debug)]
 pub enum LLVMInstruction {

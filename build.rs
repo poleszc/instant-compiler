@@ -6,6 +6,7 @@ use std::{
 
 fn main() {
     lalrpop::process_root().unwrap();
+    // lalrpop::Configuration::new().set_out_dir("src/parser").process_dir("src").unwrap();
     generate_parsing_tests().unwrap();
     generate_errors_tests().unwrap();
 }

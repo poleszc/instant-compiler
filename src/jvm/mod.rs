@@ -1,6 +1,8 @@
-pub mod driver;
-pub mod lowering;
-pub mod instructions;
+mod driver;
+mod instructions;
+mod lowering;
+
+use instructions::JVMInstruction;
+use lowering::JasmineGenerator;
+
 pub use driver::compile_jasmine;
-pub use lowering::JasmineGenerator;
-pub use instructions::JVMInstruction; 

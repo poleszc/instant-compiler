@@ -1,6 +1,6 @@
-use crate::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
-use crate::error::LoweringError;
+use crate::error::SemanticError;
 use crate::jvm::JVMInstruction;
+use crate::parser::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
 use std::collections::HashMap;
 
 type VarIndex = u32;
@@ -24,7 +24,7 @@ impl JasmineGenerator {
     }
 
     // Performs the lowering for the whole program.
-    pub fn lower_program(&mut self, program: &mut Program) -> Result<String, LoweringError> {
+    pub fn lower_program(&mut self, program: &mut Program) -> Result<String, SemanticError> {
         program.calculate_weights();
         self.emit_preambule();
         for stmt in &program.0 {
@@ -35,7 +35,7 @@ impl JasmineGenerator {
     }
 
     // Performs the lowering of a single statement.
-    fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), LoweringError> {
+    fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
         match &stmt.kind {
             StmtKind::Assignment { name, value } => {
                 self.lower_expression(value)?;
@@ -51,7 +51,7 @@ impl JasmineGenerator {
     }
 
     // Performs the lowering of a single expression.
-    fn lower_expression(&mut self, expr: &Expr) -> Result<(), LoweringError> {
+    fn lower_expression(&mut self, expr: &Expr) -> Result<(), SemanticError> {
         match &expr.kind {
             ExprKind::Literal(val) => {
                 self.emit_instruction(JVMInstruction::IConst { value: *val });
@@ -60,7 +60,7 @@ impl JasmineGenerator {
                 if let Some(index) = self.variables.get(name) {
                     self.emit_instruction(JVMInstruction::ILoad { index: *index });
                 } else {
-                    return Err(LoweringError::UndefinedVariable {
+                    return Err(SemanticError::UndefinedVariable {
                         name: name.clone(),
                         position: expr.position,
                     });
@@ -71,7 +71,7 @@ impl JasmineGenerator {
 
                 if let ExprKind::Literal(0) = rhs.kind {
                     if matches!(op, BinOp::Div) {
-                        return Err(LoweringError::ZeroDivision {
+                        return Err(SemanticError::ZeroDivision {
                             position: rhs.position,
                         });
                     }
