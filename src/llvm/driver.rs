@@ -14,7 +14,6 @@ pub fn compile_llvm(
 
     let ll_path = dir.join(format!("{}.ll", stem));
     let bc_path = dir.join(format!("{}.bc", stem));
-    let exe_path = dir.join(stem);
     let mut generator = LLVMGenerator::new();
     let llvm_code = generator.lower_program(program)?;
 
@@ -42,7 +41,7 @@ pub fn compile_llvm(
         let run_output = Command::new("lli").arg(&bc_path).output()?;
 
         if !run_output.stdout.is_empty() {
-            eprintln!("{}", String::from_utf8_lossy(&run_output.stdout))
+            print!("{}", String::from_utf8_lossy(&run_output.stdout))
         }
 
         if !run_output.stderr.is_empty() {
@@ -52,28 +51,6 @@ pub fn compile_llvm(
         if !run_output.status.success() {
             return Err(CompilerError::ExternalCommand(
                 "Program execution exited with a non-zero status.".to_string(),
-            ));
-        }
-    } else {
-        eprintln!("[LLVM] Linking executable");
-        let run_output = Command::new("clang")
-            .arg(&bc_path)
-            .arg("lib/llvm/runtime.bc")
-            .arg("-o")
-            .arg(&exe_path)
-            .output()?;
-
-        if !run_output.stdout.is_empty() {
-            eprintln!("{}", String::from_utf8_lossy(&run_output.stdout))
-        }
-
-        if !run_output.stderr.is_empty() {
-            eprintln!("{}", String::from_utf8_lossy(&run_output.stderr))
-        }
-
-        if !run_output.status.success() {
-            return Err(CompilerError::ExternalCommand(
-                "Failed to link an executable".to_string(),
             ));
         }
     }

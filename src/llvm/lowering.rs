@@ -99,11 +99,12 @@ impl LLVMGenerator {
             }
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 if let ExprKind::Literal(0) = rhs.kind
-                    && matches!(op, BinOp::Div) {
-                        return Err(SemanticError::ZeroDivision {
-                            position: rhs.position,
-                        });
-                    }
+                    && matches!(op, BinOp::Div)
+                {
+                    return Err(SemanticError::ZeroDivision {
+                        position: rhs.position,
+                    });
+                }
 
                 let lhs_reg = self.lower_expression(lhs)?;
                 let rhs_reg = self.lower_expression(rhs)?;
@@ -151,8 +152,14 @@ impl LLVMGenerator {
     }
 
     fn emit_preambule(&mut self) {
-        self.emit("declare void @printInt(i32)"); // Define print from external module.
-        self.emit(""); // Define print from external module.
+        self.emit("@dnl = internal constant [4 x i8] c\"%d\\0A\\00\"");
+        self.emit("declare i32 @printf(i8*, ...)");
+        self.emit("define void @printInt(i32 %x) {");
+        self.emit("       %t0 = getelementptr [4 x i8], [4 x i8]* @dnl, i32 0, i32 0");
+        self.emit("       call i32 (i8*, ...) @printf(i8* %t0, i32 %x) ");
+        self.emit("       ret void");
+        self.emit("}");
+        self.emit("");
         self.emit("define i32 @main() {");
     }
 

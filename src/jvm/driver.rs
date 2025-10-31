@@ -47,11 +47,11 @@ pub fn compile_jasmine(
             .output()?;
 
         if !run_output.stdout.is_empty() {
-            eprintln!("{}", String::from_utf8_lossy(&run_output.stdout))
+            print!("{}", String::from_utf8_lossy(&run_output.stdout))
         }
 
         if !run_output.stderr.is_empty() {
-            eprintln!("{}", String::from_utf8_lossy(&run_output.stderr))
+            println!("{}", String::from_utf8_lossy(&run_output.stderr))
         }
 
         if !run_output.status.success() {

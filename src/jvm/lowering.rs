@@ -140,14 +140,14 @@ impl JasmineGenerator {
             JVMInstruction::IAdd
             | JVMInstruction::ISub
             | JVMInstruction::IMul
-            | JVMInstruction::IDiv => -1, // Pops two pushes one
+            | JVMInstruction::IDiv => -1, // Pops two, pushes one.
             JVMInstruction::IStore { .. } => -1,
             JVMInstruction::ILoad { .. } => 1,
             JVMInstruction::IConst { .. } => 1,
             JVMInstruction::GetStatic { .. } => 1,
             JVMInstruction::InvokeVirtual { .. } => -2, // Pops the obj and the value form the stack. Pushes nothing.
-            JVMInstruction::Swap { .. } => 0,
-            JVMInstruction::Return { .. } => 0,
+            JVMInstruction::Swap => 0,
+            JVMInstruction::Return => 0,
         };
         self.update_stack(stack_change);
 

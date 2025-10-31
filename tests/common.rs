@@ -72,14 +72,16 @@ pub fn run_itest(input_path: &str, expected_output_path: &str, backend: Backend)
     let output = Command::new(bin_name)
         .arg(input_path)
         .arg("--run")
+        .arg("--output-dir")
         .arg(temp_dir.path())
         .output()
         .expect("Failed to execute the LLVM compiler binary");
 
     assert!(
         output.status.success(),
-        "Expected compilation to succeed for '{}', but it failed.\n[STDERR]:\n{}",
+        "Expected compilation to succeed for '{}', but it failed.\n[STDOUT]:\n{}\n[STDERR]:\n{}",
         input_path,
+        String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
 
