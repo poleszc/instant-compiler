@@ -10,11 +10,11 @@ build-all: build-jvm build-llvm
 
 build-jvm:
 	cargo build --bin insc_jvm --release
-	cp target/release/insc_jvm
+	cp target/release/insc_jvm .
 
 build-llvm:
 	cargo build --bin insc_llvm --release
-	cp target/release/insc_jvm
+	cp target/release/insc_llvm .
 
 test: build
 	@echo "Running tests..."
