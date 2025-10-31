@@ -78,9 +78,7 @@ pub fn report_semantic_error(file_path: &str, source: &str, err: LoweringError) 
                 .with_message(format!("Undefined variable '{}'", name))
                 .with_label(
                     Label::new((file_path, position.0..position.1))
-                        .with_message(format!(
-                            "This variable was not declared in the current scope."
-                        ))
+                        .with_message("This variable was not declared in the current scope.".to_string())
                         .with_color(colors.next()),
                 ),
             position.0..position.1,
