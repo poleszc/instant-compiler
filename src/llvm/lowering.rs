@@ -98,13 +98,12 @@ impl LLVMGenerator {
                 }
             }
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
-                if let ExprKind::Literal(0) = rhs.kind {
-                    if matches!(op, BinOp::Div) {
+                if let ExprKind::Literal(0) = rhs.kind
+                    && matches!(op, BinOp::Div) {
                         return Err(SemanticError::ZeroDivision {
                             position: rhs.position,
                         });
                     }
-                }
 
                 let lhs_reg = self.lower_expression(lhs)?;
                 let rhs_reg = self.lower_expression(rhs)?;

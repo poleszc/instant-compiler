@@ -69,13 +69,12 @@ impl JasmineGenerator {
             ExprKind::BinaryOp { op, lhs, rhs, .. } => {
                 let is_commutative = matches!(op, BinOp::Add | BinOp::Mul);
 
-                if let ExprKind::Literal(0) = rhs.kind {
-                    if matches!(op, BinOp::Div) {
+                if let ExprKind::Literal(0) = rhs.kind
+                    && matches!(op, BinOp::Div) {
                         return Err(SemanticError::ZeroDivision {
                             position: rhs.position,
                         });
                     }
-                }
 
                 // Left subtree is bigger, then we swap the order of calculations.
                 if rhs.get_weight().expect("Weight not calculated for rhs")

@@ -7,6 +7,8 @@ target
 **/mutants.out*/
 tests/in/*.bc
 tests/in/*.ll
+tests/in/*.class
+tests/in/*.j
 
 
 # Added by cargo
