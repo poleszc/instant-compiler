@@ -25,7 +25,7 @@ impl From<ParseIntError> for LexicalError {
 #[derive(Logos, Clone, Debug, PartialEq)]
 #[logos(skip r"[ \t\n\f\r]+", error = LexicalError)]
 pub enum Token {
-    #[regex(r"[a-zA-Z_][a-z-A-Z0-9_]*", |lex| lex.slice().to_string())]
+    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_string())]
     Identifier(String),
     #[regex(r"[0-9]+", |lex| lex.slice().parse())]
     Integer(i32),
