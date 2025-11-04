@@ -11,6 +11,7 @@ tests/in/*.bc
 tests/in/*.ll
 tests/in/*.class
 tests/in/*.j
+tests/perf/
 
 
 # Added by cargo

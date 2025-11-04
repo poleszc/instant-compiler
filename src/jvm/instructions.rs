@@ -39,6 +39,8 @@ impl JVMInstruction {
                     format!("iconst_{}", value)
                 } else if *value <= 127 {
                     format!("bipush {}", value)
+                } else if *value <= 32767 {
+                    format!("sipush {}", value)
                 } else {
                     format!("ldc {}", value)
                 }
