@@ -62,6 +62,7 @@ impl JasmineGenerator {
                 self.emit_print();
             }
         }
+        self.emit("");
         Ok(())
     }
 

@@ -1,7 +1,7 @@
 # Instant - Piotr Oleszczuk, nr 448390
 ## Budowanie projektu
 1) Instalacja Rust:
-   - Aby zainstalować należy uruchomić skrypt `build` znajdujący się w katalogu głównym projektu.
+   - Aby zainstalować należy uruchomić skrypt `build.sh` znajdujący się w katalogu głównym projektu.
     Skrypt instaluje Rust i Cargo (package manager) z oficjalnej strony Rusta i ładuje zmiany
     żeby były dostępne z aktualnej sesji terminalowej, a następnie wykonuje polecenie `make`, które
     pobierze wszystkie potrzebne dependencje, zbuduje projekt i przekopiuje pliki wykonywalne
