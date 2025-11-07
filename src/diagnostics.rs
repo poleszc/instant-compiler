@@ -1,15 +1,15 @@
+/// Main file with the error logging logic. Transforms all the compilation errors to ariadne messages.
 use crate::error::{CompilerError, SemanticError};
 use crate::parser::tokens::{LexicalError, Token};
 use ariadne::{ColorGenerator, Config, Label, Report, ReportKind, Source};
 use lalrpop_util::ParseError;
 
-// TODO: Better error file with more structure.
+/// Reports a parsing error with ariadne.
 fn report_parsing_error(
     file_path: &str,
     source: &str,
     err: ParseError<usize, Token, LexicalError>,
 ) {
-    // TODO: Add nicer errors with more colors.
     let source_cache = Source::from(source);
     let config = Config::default().with_color(true).with_underlines(true);
     let report = Report::build(ReportKind::Error, file_path, 0).with_config(config);
@@ -72,6 +72,7 @@ fn report_parsing_error(
         .expect("Failed to report an error");
 }
 
+/// Reports a semantic error with ariadne.
 fn report_semantic_error(file_path: &str, source: &str, err: SemanticError) {
     let source_cache = Source::from(source);
     let config = Config::default().with_color(true).with_underlines(true);
@@ -114,15 +115,12 @@ pub fn report_error(file_path: &str, source: &str, err: CompilerError) {
             report_semantic_error(file_path, source, sematic_err)
         }
         CompilerError::Io(io_err) => {
-            // TODO: Make this better. Use ariadne.
             println!("[I/O Error] {}: {}", file_path, io_err)
         }
         CompilerError::ExternalCommand(msg) => {
-            // TODO: Make this better. Use ariadne.
             println!("[External Command Error]: {}", msg)
         }
         CompilerError::Other(msg) => {
-            // TODO: Make this better. Use ariadne.
             println!("[Error]: {}", msg)
         }
     }

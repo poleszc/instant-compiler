@@ -1,3 +1,4 @@
+// File containing the token definitions for the custom lexer implementation.
 use logos::Logos;
 use std::{fmt, num::ParseIntError};
 
@@ -7,6 +8,7 @@ pub enum LexicalError {
     #[default]
     InvalidToken,
 }
+
 impl fmt::Display for LexicalError {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

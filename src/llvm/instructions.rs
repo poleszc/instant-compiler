@@ -1,3 +1,4 @@
+/// An abstraction over the Jasmine instructions.
 pub type RegisterName = String;
 pub type PointerName = String;
 

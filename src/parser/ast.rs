@@ -1,3 +1,4 @@
+/// Main file containing the AST definition.
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -17,7 +18,6 @@ pub struct Stmt {
     pub position: SourcePosition,
 }
 
-// TODO: Why Eq can't be here?
 #[derive(Debug, PartialEq, Clone)]
 pub enum StmtKind {
     Assignment { name: String, value: Box<Expr> },
@@ -50,6 +50,10 @@ pub enum BinOp {
     Div,
 }
 
+/// =============== Weight calculation ===================
+/// This part implements the preprocessing of the AST. For each node in the AST, 
+/// it calculates the height of it's subtree (including the node itself). This 
+/// data is then used for optimizations in Jasmine code generation.
 impl Program {
     pub fn calculate_weights(&mut self) {
         for stmt in &mut self.0 {

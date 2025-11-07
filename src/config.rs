@@ -1,3 +1,4 @@
+/// Main file for defining the compiler settings.
 use clap::Parser;
 use std::path::PathBuf;
 

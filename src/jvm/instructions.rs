@@ -1,3 +1,4 @@
+/// An abstraction over the Jasmine instructions.
 pub enum JVMInstruction {
     IAdd,
     IMul,

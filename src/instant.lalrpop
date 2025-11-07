@@ -8,6 +8,7 @@ extern {
     type Location = usize;
     type Error = LexicalError;
       
+    // Define token types from the custom lexer.
     enum Token {
         "identifier" => Token::Identifier(<String>),
         "int" => Token::Integer(<i32>),
@@ -27,7 +28,6 @@ pub Program: ast::Program = {
     <stmts: Comma<Statement>> => ast::Program(stmts)
 }
 
-// TODO: Should optional trailing semicolon be accepted? For now it is.
 Comma<T>: Vec<T> = {
     <mut v:(<T> ";")*> <e:T?> => match e {
         None => v,
@@ -101,7 +101,7 @@ pub Expression: Box<ast::Expr> = {
             }
         )
     },
-    // TODO: Is this precedence right?
+
     <lhs:Expression> "-" <rhs:Expression> => {
         Box::new(
             ast::Expr {

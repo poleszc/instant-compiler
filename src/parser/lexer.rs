@@ -1,3 +1,4 @@
+// Custom lexer implementation using logos.
 use crate::parser::tokens::{LexicalError, Token};
 use logos::{Logos, SpannedIter};
 

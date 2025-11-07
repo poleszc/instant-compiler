@@ -1,3 +1,4 @@
+/// Main file containing the JVM code generation logic.
 use crate::error::SemanticError;
 use crate::jvm::JVMInstruction;
 use crate::parser::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
@@ -20,16 +21,17 @@ impl JasmineGenerator {
             class_name: class_name.to_string(),
             output: String::new(),
             variables: HashMap::new(),
-            stack_size: 0,   // Starting from 1, since 0 is reserved for args.
+            stack_size: 0,
             limit_locals: 1, // Starting from 1, since args exist.
             limit_stack: 0,
         }
     }
 
-    // Performs the lowering for the whole program.
+    /// Performs the lowering for the whole program.
     pub fn lower_program(&mut self, program: &mut Program) -> Result<String, SemanticError> {
         program.calculate_weights();
 
+        // Emit the method body first.
         let mut method_body = String::new();
         std::mem::swap(&mut self.output, &mut method_body);
 
@@ -38,6 +40,8 @@ impl JasmineGenerator {
         }
         std::mem::swap(&mut self.output, &mut method_body);
 
+        // Now emit the preambule with the calculated limit_stack and
+        // limit_locals, then append the method body and the postambule.
         self.emit_preambule();
         self.output.push_str(&method_body);
         self.emit_postambule();
@@ -45,7 +49,7 @@ impl JasmineGenerator {
         Ok(self.output.clone())
     }
 
-    // Performs the lowering of a single statement.
+    /// Performs the lowering of a single statement.
     fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
         match &stmt.kind {
             StmtKind::Assignment { name, value } => {
@@ -61,7 +65,7 @@ impl JasmineGenerator {
         Ok(())
     }
 
-    // Performs the lowering of a single expression.
+    /// Performs the lowering of a single expression.
     fn lower_expression(&mut self, expr: &Expr) -> Result<(), SemanticError> {
         match &expr.kind {
             ExprKind::Literal(val) => {
@@ -116,6 +120,8 @@ impl JasmineGenerator {
         Ok(())
     }
 
+    /// If a variable exists returns it's index on the stack.
+    /// If not, creates a new variable on the stack and returns it's index.
     fn get_or_create_variable_index(&mut self, name: &str) -> u32 {
         if let Some(index) = self.variables.get(name) {
             *index
@@ -127,6 +133,7 @@ impl JasmineGenerator {
         }
     }
 
+    /// Update the stack by the `change` and update `limit_stack` if necessary.
     fn update_stack(&mut self, change: i32) {
         self.stack_size += change;
         assert!(self.stack_size >= 0);
@@ -136,6 +143,7 @@ impl JasmineGenerator {
     }
 
     fn emit_instruction(&mut self, instruction: JVMInstruction) {
+        // Calculate the stack change for each operation.
         let stack_change = match instruction {
             JVMInstruction::IAdd
             | JVMInstruction::ISub

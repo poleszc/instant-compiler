@@ -1,3 +1,4 @@
+/// Main file containing the LLVM code generation logic.
 use crate::error::SemanticError;
 use crate::llvm::{LLVMInstruction, PointerName, RegisterName};
 use crate::parser::ast::{BinOp, Expr, ExprKind, Program, Stmt, StmtKind};
@@ -18,17 +19,19 @@ impl LLVMGenerator {
         Self {
             output: String::new(),
             variables: HashMap::new(),
-            // TODO: Is that true? Do we start from one?
             register_index: 1,
         }
     }
 
+    /// Creates a new register and returns it's name.
     fn new_register(&mut self) -> RegisterName {
         let name = format!("%{}", self.register_index);
         self.register_index += 1;
         name
     }
 
+    /// If a variable exists returns it's pointers name.
+    /// If not, creates a new variable and returns it's name.
     fn get_or_create_variable(&mut self, name: &str) -> PointerName {
         if let Some(ptr_name) = self.variables.get(name) {
             ptr_name.clone()
@@ -43,7 +46,7 @@ impl LLVMGenerator {
         }
     }
 
-    // Performs the lowering for the whole program.
+    /// Performs the lowering for the whole program.
     pub fn lower_program(&mut self, program: &mut Program) -> Result<String, SemanticError> {
         self.emit_preambule();
         for stmt in &program.0 {
@@ -53,7 +56,7 @@ impl LLVMGenerator {
         Ok(self.output.clone())
     }
 
-    // Performs the lowering of a single statement.
+    /// Performs the lowering of a single statement.
     fn lower_statement(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
         match &stmt.kind {
             StmtKind::Assignment { name, value } => {
@@ -127,7 +130,6 @@ impl LLVMGenerator {
                         left: lhs_reg,
                         right: rhs_reg,
                     },
-                    // TODO: Check for zero division.
                     BinOp::Div => LLVMInstruction::Div {
                         location: location.clone(),
                         left: lhs_reg,

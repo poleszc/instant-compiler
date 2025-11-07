@@ -8,7 +8,10 @@ use crate::{
     parser::{self, ast},
 };
 
-// TODO: Add docs
+/// Main driver for the compiler. Performs all the generic operations for both backends.
+/// - Resolves the output directories
+/// - Performs the parsing
+/// - Runs the compilation function(`backend_compile`).
 pub fn run_compiler<
     F: FnOnce(&mut ast::Program, &Path, &str, &InstantArgs) -> Result<(), CompilerError>,
 >(

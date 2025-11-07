@@ -1,3 +1,8 @@
+/// Main compilation handling the compilation to LLVM-IR
+/// - Determines the output file names
+/// - Runs the code generation via the LLVMGenerator object.
+/// - Runs `llvm-as` to assemble the bitcode
+/// - Runs the `lli` on the generated bitcode if requested.
 use crate::InstantArgs;
 use crate::error::CompilerError;
 use crate::llvm::LLVMGenerator;

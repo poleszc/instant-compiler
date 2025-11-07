@@ -1,13 +1,9 @@
-# Instant
-A simple compiler for a language with assignments and arithmetic operations.
-
-Compiles to both LLVM and JVM bytecode.
-
+# Instant - Piotr Oleszczuk, nr 448390
 ## Budowanie projektu
 1) Instalacja Rust:
-   - Aby zainstalować uruchom skrypt `build` znajdujący się w katalogu głównym projektu.
+   - Aby zainstalować należy uruchomić skrypt `build` znajdujący się w katalogu głównym projektu.
     Skrypt instaluje Rust i Cargo (package manager) z oficjalnej strony Rusta i ładuje zmiany
-    żeby były dostępne z tej sesji terminalowej, a następnie wykonuje polecenie `make`, które
+    żeby były dostępne z aktualnej sesji terminalowej, a następnie wykonuje polecenie `make`, które
     pobierze wszystkie potrzebne dependencje, zbuduje projekt i przekopiuje pliki wykonywalne
     do katalogu głównego.
 2) Budowanie projektu:
@@ -23,7 +19,7 @@ Compiles to both LLVM and JVM bytecode.
 ## Użycie kompilatora
 Domyślna kompilacja:
 ```bash
-# Skopiluje plik test01.ins. Pliki `*.j` oraz '*.class` domyślnie znajdą się tej samej lokacji co plik kompilowany.
+# Skompiluje plik test01.ins. Pliki `*.j` oraz '*.class` domyślnie znajdą się tej samej lokalizacji co plik kompilowany.
 ./insc_jvm tests/in/test01.ins 
 # Analogicznie dla backendu LLVM. 
 ./insc_llvm tests/in/test01.ins
@@ -31,16 +27,16 @@ Domyślna kompilacja:
 
 Uruchomienie programu po kompilacji:
 ```bash
-# Skopiluje plik test01.ins oraz uruchomi JVM na skompilowanym pliku.
+# Skompiluje plik test01.ins oraz uruchomi JVM na skompilowanym pliku.
 ./insc_jvm tests/in/test01.ins --run
-# Skopiluje plik test01.ins oraz uruchomi lli na skompilowanym pliku.
-./insc_llvm tests/in/test01.ins
+# Skompiluje plik test01.ins oraz uruchomi lli na skompilowanym pliku.
+./insc_llvm tests/in/test01.ins --run
 ```
 
 Specyfikowanie ścieżki wyjściowej:
 ```bash
-# Skopiluje plik test01.ins. Pliki pośrednie znajdą się w katalogu `output`. Bez tej opcji 
-# pliki pośrednie znajdą się tam gdzie plik kompilowany
+# Skompiluje plik test01.ins. Pliki pośrednie znajdą się w katalogu `output`. Bez tej opcji 
+# pliki pośrednie znajdą się tam gdzie plik kompilowany.
 ./insc_jvm tests/in/test01.ins --output-dir output
 # Analogicznie dla backendu LLVM. 
 ./insc_llvm tests/in/test01.ins
@@ -49,12 +45,12 @@ Specyfikowanie ścieżki wyjściowej:
 ## Struktura projektu
 ```bash
 .
-├── build.rs # Skrypt wykonujący się automatycznie przez rozpoczęciem kompilacji. Buduje parser `lalrpop` na podstawie gramatyki lalrpop oraz automatycznie generuje testy.
-├── build.sh # Skrypt instalujący Rust i budujący projekt.
+├── build.rs            # Skrypt wykonujący się automatycznie przez rozpoczęciem kompilacji. Buduje parser `lalrpop` na podstawie gramatyki lalrpop oraz automatycznie generuje testy.
+├── build.sh            # Skrypt instalujący Rust i budujący projekt.
 ├── Cargo.lock
-├── Cargo.toml # Konfiguracja projektu, dependencje itp.
-├── Instant.cf # Gramatyka BNCF. W tym projekcie nie używana.
-├── instant.md # Treść zadania
+├── Cargo.toml          # Konfiguracja projektu, dependencje itp.
+├── Instant.cf          # Gramatyka BNCF. W tym projekcie nie używana.
+├── instant.md          # Treść zadania
 ├── lib
 │   ├── jvm
 │   │   └── jasmin.jar
@@ -65,18 +61,21 @@ Specyfikowanie ścieżki wyjściowej:
 ├── README.md
 ├── src
 │   ├── bin
-│   │   ├── insc_jvm.rs # Binarka uruchamiająca kompilacje z backendem Jasmine.
-│   │   └── insc_llvm.rs # Binarka uruchamiająca kompilacje z backendem LLVM.
-│   ├── config.rs # Definicja konfiguracji kompilatora (argumentów linii poleceń). Tutaj użyta jest biblioteka CLAP
-│   ├── diagnostics.rs # Produkcja ładnych błędów kompilacji za pomocą biblioteki Ariadne.
-│   ├── driver.rs # Główny silnik kompilacji, czyta pliki, wywołuje parsowanie, tworzy katalogi na pliki wyjściowe. Kompiluje sparsowany program podanym backendem.
-│   ├── error.rs # Definicje błędów kompilacji (błędy syntaktyczne, semantyczne, błędy wykonania polecen zewnętrznych itp.)
-│   ├── instant.lalrpop # Gramatyka języka instant w formacie lalrpop.
+│   │   ├── insc_jvm.rs     # Binarka uruchamiająca kompilacje z backendem Jasmine.
+│   │   └── insc_llvm.rs    # Binarka uruchamiająca kompilacje z backendem LLVM.
+│   ├── config.rs           # Definicja konfiguracji kompilatora (argumentów linii poleceń). Tutaj użyta jest biblioteka CLAP.
+│   ├── diagnostics.rs      # Produkcja ładnych błędów kompilacji za pomocą biblioteki Ariadne.
+│   ├── driver.rs           # Główny silnik kompilacji, czyta pliki, wywołuje parsowanie, tworzy katalogi na pliki wyjściowe. 
+                            # Kompiluje sparsowany program podanym backendem.
+│   ├── error.rs            # Definicje błędów kompilacji (błędy syntaktyczne, semantyczne, błędy wykonania polecen zewnętrznych, itp.)
+│   ├── instant.lalrpop     # Gramatyka języka instant w formacie lalrpop.
 │   ├── jvm
-│   │   ├── driver.rs # Główny silnik zarządzający kompilacją backendem Jasmine. Wykonuje kompilacje, uruchamia jasmine, uruchamia program na JVM (jeżeli taka opcja została przekazana)
-│   │   ├── instructions.rs # Abstrakcja nad instrukcjami JVM używnymi w tym projekcie, żeby nie operować na stringach
-│   │   ├── lowering.rs # Główna logika kompilacji. Struktura JasmineGenerator zarządza całym przekształceniem AST w kod Jasmine.
-│   │   └── mod.rs # Definicje funkcji/struktur eksportowanych z modułu
+│   │   ├── driver.rs       # Główny silnik zarządzający kompilacją backendem Jasmine. Wykonuje kompilacje, 
+                            # uruchamia jasmine, uruchamia program na JVM (jeżeli taka opcja została przekazana).
+│   │   ├── instructions.rs # Abstrakcja nad instrukcjami JVM. 
+│   │   ├── lowering.rs     # Główna logika kompilacji. Struktura JasmineGenerator zarządza całym przekształceniem 
+                            # AST w kod Jasmine.
+│   │   └── mod.rs          # Definicje funkcji/struktur eksportowanych z modułu
 │   ├── lib.rs
 │   ├── llvm # Zawartość tego projektu jest analogiczna jak w przypadku `src/jvm` tylko dla LLVM.
 │   │   ├── driver.rs
@@ -84,8 +83,8 @@ Specyfikowanie ścieżki wyjściowej:
 │   │   ├── lowering.rs
 │   │   └── mod.rs
 │   └── parser
-│       ├── ast.rs # Definicja drzewa AST
-│       ├── lexer.rs # Własny lekser napisany, żeby lepiej zgłaszać błędy kompilacji.
+│       ├── ast.rs      # Definicja drzewa AST i funkcji liczących głębokości poddrzew.
+│       ├── lexer.rs    # Implementacja leksera.
 │       ├── mod.rs
 │       └── tokens.rs # Definicja struktury tokenów.
 └── tests
@@ -121,12 +120,7 @@ Specyfikowanie ścieżki wyjściowej:
 
 ```
 
-
-
-
-
 ## Użyte biblioteki
-<!-- TODO: Usuń logos? -->
 - [Clap](https://crates.io/crates/clap) - parser argumentów podanych z wiersza lini poleceń.
 - [Lalrpop](https://lalrpop.github.io/lalrpop/index.html) - generator parserów dla języka Rust. Gramatyka **lalrpop** użyta w tym projekcie znajduje się [tutaj](./src/instant.lalrpop).
 - [Logos](https://crates.io/crates/logos) - generator lekserów dla języka Rust. 
