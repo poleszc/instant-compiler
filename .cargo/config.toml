@@ -1,6 +1,0 @@
-[alias]
-run-jvm = "run --bin insc_jvm --features jvm_backend"
-run-llvm = "run --bin insc_llvm --features llvm_backend"
-build-jvm = "build --bin insc_jvm --features jvm_backend"
-build-llvm = "build --bin insc_llvm --features llvm_backend"
-test-all = "test --features jvm_backend llvm_backend"
