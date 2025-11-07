@@ -1,9 +1,5 @@
 PROJECT_NAME=instant-compiler
 
-JASMIN = java -jar lib/jasmin.jar
-LLVM-AS = llvm-as
-LLI = LLI
-
 all: build-all
 	
 build-all: build-jvm build-llvm
