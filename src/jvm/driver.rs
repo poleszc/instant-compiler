@@ -28,7 +28,7 @@ pub fn compile_jasmine(
     eprintln!("[JVM] Assembling Jasmine...");
     let output = Command::new("java")
         .arg("-jar")
-        .arg("lib/jvm/jasmin.jar")
+        .arg("lib/jasmin.jar")
         .arg("-d")
         .arg(dir)
         .arg(&jasmine_path)
